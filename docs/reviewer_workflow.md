@@ -12,7 +12,8 @@ This workflow is for humans using the generated artifacts. The tool prepares rev
 6. **Check reconciliation findings.** Review row-count differences, missing source keys in target, unexpected target keys, skipped comparisons, and mismatch samples.
 7. **Check mapping and contract findings.** Confirm that mappings reference expected source and target fields and that contract fields align with observed target columns.
 8. **Check sensitive-field indicators and evidence coverage.** Confirm whether flagged columns need handling review and whether expected evidence types are declared and present.
-9. **Record human decisions outside the tool.** Use your organization’s normal review records, ticketing system, risk log, change process, or meeting notes.
+9. **Review optional `llm_reviewer_notes.json` last when present.** Treat it as supplemental prompts derived from the deterministic review pack, not as a decision source.
+10. **Record human decisions outside the tool.** Use your organization’s normal review records, ticketing system, risk log, change process, or meeting notes.
 
 ## Human authority boundary
 

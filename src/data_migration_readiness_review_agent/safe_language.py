@@ -8,6 +8,7 @@ FORBIDDEN_VERDICT_PHRASES = (
     "go live approved",
     "go_live_ready",
     "go-live ready",
+    "go live ready",
     "ready for go-live",
     "safe to migrate",
     "migration is ready",

@@ -15,6 +15,7 @@ TEST_EVIDENCE_REVIEW_FILE_NAME = "test_evidence_review.json"
 EVIDENCE_COVERAGE_REVIEW_FILE_NAME = "evidence_coverage_review.json"
 REVIEW_PACK_FILE_NAME = "review_pack.json"
 REVIEWER_SUMMARY_FILE_NAME = "reviewer_summary.md"
+LLM_REVIEWER_NOTES_FILE_NAME = "llm_reviewer_notes.json"
 TRACE_FILE_NAME = "migration_readiness_trace.json"
 
 

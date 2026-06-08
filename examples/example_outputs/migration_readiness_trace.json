@@ -11,6 +11,7 @@
     "evidence_coverage_review.json",
     "review_pack.json",
     "reviewer_summary.md",
+    "llm_reviewer_notes.json",
     "migration_readiness_trace.json"
   ],
   "contract_review_summary": {
@@ -43,6 +44,14 @@
     "evidence_types_with_gaps": 0,
     "expected_evidence_types": 5
   },
+  "llm_review_summary": {
+    "input_truncated": false,
+    "llm_performed": false,
+    "llm_requested": false,
+    "llm_status": "llm_review_not_requested",
+    "model": null,
+    "provider": null
+  },
   "manifest_path": "/workspace/data-migration-readiness-review-agent/examples/migration_pack/manifest.yaml",
   "mapping_review_summary": {
     "mapping_files_failed_checks": 0,
@@ -68,7 +77,8 @@
     "PR #6 reviews evidence coverage only. It records declared evidence types and file presence without judging document quality.",
     "PR #7 aggregates deterministic review artifacts for human review. It does not assess readiness, approve migration, decide go-live, certify legal/privacy/compliance status, call an LLM, or replace human review.",
     "PR #7 writes a deterministic reviewer summary for human review only. It does not assess readiness, approve migration, decide go-live, certify compliance, or replace human review.",
-    "PR #7 created deterministic review pack and reviewer summary artifacts. No readiness assessment, scoring, LLM review, LangGraph orchestration, legal/privacy/compliance certification, or migration approval was performed."
+    "PR #9 adds optional LLM reviewer notes. The default run does not call an LLM. Deterministic artifacts remain authoritative.",
+    "PR #9 creates deterministic review artifacts and an optional supplemental LLM notes artifact. It does not assess readiness, score dimensions, approve migration, decide go-live, certify legal/privacy/compliance status, or replace human review."
   ],
   "orchestrator": "standard",
   "output_directory": "/workspace/data-migration-readiness-review-agent/examples/example_outputs",

@@ -8,6 +8,7 @@ from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     INVENTORY_FILE_NAME,
+    LLM_REVIEWER_NOTES_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
     REVIEW_PACK_FILE_NAME,
@@ -39,6 +40,7 @@ EXPECTED_JSON_STATUSES = {
         "evidence_coverage_review_created",
     ),
     REVIEW_PACK_FILE_NAME: ("review_pack", "review_pack_created"),
+    LLM_REVIEWER_NOTES_FILE_NAME: ("llm_reviewer_notes", "llm_review_not_requested"),
 }
 
 
@@ -59,6 +61,13 @@ def test_committed_example_outputs_have_expected_statuses() -> None:
     trace = read_json(EXAMPLE_OUTPUT_DIR / TRACE_FILE_NAME)
     assert trace["status"] == "review_summary_artifacts_created"
     assert set(trace["artifacts_written"]) == EXPECTED_ARTIFACT_FILES
+
+
+def test_committed_example_llm_artifact_is_not_requested_and_safe() -> None:
+    notes = read_json(EXAMPLE_OUTPUT_DIR / LLM_REVIEWER_NOTES_FILE_NAME)
+
+    assert notes["status"] == "llm_review_not_requested"
+    assert find_forbidden_terms(json.dumps(notes)) == []
 
 
 def test_committed_example_reviewer_summary_exists_and_is_safe() -> None:
