@@ -1,3 +1,8 @@
+"""
+Renders reviewer_summary.md deterministically from review_pack.json. The Markdown is the
+first file for a human to open, groups findings and checklist items, includes no raw
+data values, and is checked for safe language before writing.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -49,6 +54,11 @@ SUMMARY_COUNT_LABELS = [
 
 
 def build_reviewer_summary_markdown(review_pack: dict[str, Any]) -> str:
+    """
+    Render deterministic Markdown from review_pack.json so the summary matches the
+    machine-readable aggregation layer.
+    """
+    # Render Markdown from review_pack so the readable summary matches JSON evidence.
     migration = review_pack["migration"]
     lines: list[str] = [
         "# Data Migration Review Summary",
@@ -127,11 +137,16 @@ def build_reviewer_summary_markdown(review_pack: dict[str, Any]) -> str:
         ]
     )
     markdown = "\n".join(lines)
+    # Run safe-language validation before writing the first file a reviewer opens.
     assert_safe_generated_text(markdown, context="reviewer_summary.md")
     return markdown
 
 
 def write_reviewer_summary(review_pack: dict[str, Any], output_dir: Path, file_name: str) -> Path:
+    """
+    Write reviewer_summary.md after rendering from review_pack and passing safe-language
+    validation.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / file_name
     path.write_text(build_reviewer_summary_markdown(review_pack), encoding="utf-8")

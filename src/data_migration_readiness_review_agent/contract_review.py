@@ -1,3 +1,8 @@
+"""
+Reviews YAML/YML contract files against target schemas and profiles. It checks field
+presence, required null counts, and simple type compatibility without providing legal or
+compliance certification.
+"""
 from __future__ import annotations
 
 import importlib.util
@@ -21,6 +26,10 @@ def build_contract_review(
     dataset_profiles: dict[str, Any],
     schema_inventory: dict[str, Any],
 ) -> dict[str, Any]:
+    """
+    Build contract_review.json from declared contract files, target schemas, and target
+    profiles without treating contracts as certification artifacts.
+    """
     profiles_by_dataset = {
         dataset["dataset_id"]: dataset for dataset in dataset_profiles["datasets"]
     }
@@ -46,6 +55,10 @@ def review_contract_entry(
     profiles_by_dataset: dict[str, dict[str, Any]],
     schema_by_dataset: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
+    """
+    Review one contract file and return field checks or a failed-check artifact if the
+    file is missing or malformed.
+    """
     manifest_contract_id = contract.get("contract_id", contract["path"])
     dataset_id = contract.get("dataset_id")
     relative_path = contract["path"]
@@ -61,6 +74,7 @@ def review_contract_entry(
     )
 
     if not resolved_path.exists() or not resolved_path.is_file():
+        # Missing contracts are captured as gaps instead of stopping the run.
         review["status"] = "gap_found"
         review["warnings"].append(f"Contract YAML file is missing: {relative_path}")
         return review
@@ -68,6 +82,7 @@ def review_contract_entry(
     try:
         parsed = parse_contract_yaml(resolved_path)
     except (OSError, UnicodeDecodeError, ValueError) as exc:
+        # Malformed contracts produce failed-check artifacts that humans can inspect.
         review["status"] = "failed_check"
         review["warnings"].append(f"Contract YAML could not be parsed: {exc}")
         return review
@@ -132,6 +147,10 @@ def review_contract_entry(
 
 
 def parse_contract_yaml(path: Path) -> Any:
+    """
+    Load one contract YAML/YML file and validate that it has a mapping shape usable by
+    the deterministic checks.
+    """
     text = path.read_text(encoding="utf-8")
     yaml_spec = importlib.util.find_spec("yaml")
     if yaml_spec is not None:
@@ -147,6 +166,10 @@ def parse_contract_yaml(path: Path) -> Any:
 def base_contract_review(
     contract_id: str, dataset_id: str | None, relative_path: str, target_columns: list[str]
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for base
+    contract review. It records evidence without changing workflow behavior.
+    """
     return {
         "contract_id": contract_id,
         "dataset_id": dataset_id,
@@ -165,6 +188,11 @@ def base_contract_review(
 
 
 def target_profile_columns_by_name(dataset_profile: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    target profile columns by name. It records evidence without changing workflow
+    behavior.
+    """
     target = dataset_profile.get("target", {})
     return {column["name"]: column for column in target.get("columns", [])}
 
@@ -175,11 +203,16 @@ def build_contract_field_reviews(
     target_columns: list[str],
     target_profile_columns: dict[str, dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[str]]:
+    """
+    Build per-field contract checks using observed target columns and profiled null
+    counts.
+    """
     reviews: list[dict[str, Any]] = []
     validation_warnings: list[str] = []
     target_column_set = set(target_columns)
     for index, field in enumerate(fields):
         if not isinstance(field, dict):
+            # Validate field shape before field checks so malformed contracts stay readable.
             validation_warnings.append(f"Contract field at index {index} must be a mapping.")
             continue
         name_value = field.get("name")
@@ -221,6 +254,10 @@ def build_contract_field_review(
     target_columns: set[str],
     target_profile_columns: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
+    """
+    Check one contract field for presence, required-value null counts, and simple
+    inferred-type compatibility.
+    """
     target_present = name in target_columns
     target_profile = target_profile_columns.get(name, {})
     target_type = target_profile.get("inferred_type") if target_present else None
@@ -236,6 +273,7 @@ def build_contract_field_review(
         }
     ]
     if required and target_present:
+        # Required checks use profiled target null counts; the contract file alone is not enough.
         null_check_passed = target_null_count == 0
         checks.append(
             {
@@ -277,11 +315,16 @@ def build_contract_field_review(
 
 
 def type_check(expected_type: str, inferred_type: str) -> tuple[bool, str]:
+    """
+    Compare a declared contract type to an inferred CSV type using conservative
+    compatibility rules.
+    """
     if not inferred_type or inferred_type == "empty":
         return (
             False,
             f"Expected type '{expected_type}' could not be checked against empty target type.",
         )
+    # Text is compatible with narrower inferred CSV types because CSV inference may be specific.
     compatible_types = {
         "integer": {"integer"},
         "decimal": {"decimal", "integer"},
@@ -305,6 +348,10 @@ def type_check(expected_type: str, inferred_type: str) -> tuple[bool, str]:
 
 
 def build_contract_summary(reviews: list[dict[str, Any]]) -> dict[str, int]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for build
+    contract summary. It records evidence without changing workflow behavior.
+    """
     return {
         "contracts_expected": len(reviews),
         "contracts_reviewed": sum(1 for review in reviews if review["status"] == "reviewed"),

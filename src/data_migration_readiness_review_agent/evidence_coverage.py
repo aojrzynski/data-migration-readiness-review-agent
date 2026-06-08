@@ -1,3 +1,7 @@
+"""
+Reviews expected evidence coverage from declared evidence items and file presence. It
+notes missing and extra evidence types without judging evidence quality or sufficiency.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,6 +20,10 @@ EXPECTED_EVIDENCE_TYPES = ("migration_notes", "cutover", "rollback", "risk", "ac
 
 
 def build_evidence_coverage_review(loaded_manifest: LoadedManifest) -> dict[str, Any]:
+    """
+    Build evidence_coverage_review.json by comparing expected evidence types to declared
+    evidence items and file presence.
+    """
     evidence_items = [
         item for item in loaded_manifest.data.get("evidence", []) if isinstance(item, dict)
     ]
@@ -48,6 +56,10 @@ def build_evidence_coverage_review(loaded_manifest: LoadedManifest) -> dict[str,
 def review_expected_type(
     loaded_manifest: LoadedManifest, evidence_items: list[dict[str, Any]], evidence_type: str
 ) -> dict[str, Any]:
+    """
+    Summarize declared items for one expected evidence type, distinguishing present
+    files, missing files, and gaps.
+    """
     matching = [item for item in evidence_items if item.get("evidence_type") == evidence_type]
     return review_items(loaded_manifest, evidence_type, matching, expected=True)
 
@@ -55,6 +67,10 @@ def review_expected_type(
 def review_extra_type(
     loaded_manifest: LoadedManifest, evidence_items: list[dict[str, Any]], evidence_type: str
 ) -> dict[str, Any]:
+    """
+    Summarize declared evidence whose type is outside the built-in expected evidence set
+    without judging its quality.
+    """
     matching = [item for item in evidence_items if item.get("evidence_type") == evidence_type]
     return review_items(loaded_manifest, evidence_type, matching, expected=False)
 
@@ -66,6 +82,10 @@ def review_items(
     *,
     expected: bool,
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    review items. It records evidence without changing workflow behavior.
+    """
     paths: list[str] = []
     file_details: list[dict[str, Any]] = []
     files_present = 0
@@ -77,6 +97,7 @@ def review_items(
         resolved_path = resolve_inside_pack(
             loaded_manifest.pack_path, Path(relative_path), description=f"evidence:{evidence_type}"
         )
+        # File presence is useful evidence coverage, but it does not judge evidence quality.
         present = resolved_path.exists() and resolved_path.is_file()
         if present:
             files_present += 1
@@ -91,6 +112,7 @@ def review_items(
                 "file_size_bytes": resolved_path.stat().st_size if present else None,
             }
         )
+    # Distinguish undeclared expected evidence from declared evidence whose files are missing.
     status = "evidence_present" if files_present else "gap_found"
     if expected and not items:
         status = "evidence_missing"
@@ -107,6 +129,10 @@ def review_items(
 
 
 def extension_format(relative_path: str) -> str:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    extension format. It records evidence without changing workflow behavior.
+    """
     suffix = Path(relative_path).suffix.casefold().lstrip(".")
     if suffix in {"md", "markdown"}:
         return "markdown"
@@ -118,6 +144,7 @@ def extension_format(relative_path: str) -> str:
 
 
 def build_summary(expected: list[dict[str, Any]]) -> dict[str, int]:
+    """Build compact summary counts for the artifact currently being assembled."""
     return {
         "expected_evidence_types": len(expected),
         "evidence_types_present": sum(

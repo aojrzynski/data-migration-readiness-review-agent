@@ -1,3 +1,7 @@
+"""
+Helpers for writing local JSON artifacts. This module handles serialization only; it
+does not interpret the business meaning of artifact content.
+"""
 from __future__ import annotations
 
 import json
@@ -45,7 +49,13 @@ __all__ = [
 
 
 def write_json_artifact(payload: dict[str, Any], output_dir: Path, file_name: str) -> Path:
+    """
+    Write one local JSON artifact with stable, pretty formatting. Serialization is
+    deterministic, but this helper does not validate the business meaning of the
+    payload.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact_path = output_dir / file_name
+    # Pretty, sorted JSON keeps local artifacts easy to diff and review.
     artifact_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return artifact_path

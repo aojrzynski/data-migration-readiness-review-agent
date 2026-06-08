@@ -1,3 +1,8 @@
+"""
+Reviews mapping CSVs against observed source and target schemas. It checks required
+source_field and target_field columns, missing references, duplicate mappings, and
+unmapped columns without executing transformations.
+"""
 from __future__ import annotations
 
 import csv
@@ -11,6 +16,7 @@ from data_migration_readiness_review_agent.manifest import resolve_inside_pack
 from data_migration_readiness_review_agent.models import LoadedManifest
 
 MAPPING_REVIEW_FILE_NAME = "mapping_review.json"
+# Mapping row summaries are bounded so large mapping files do not dominate artifacts.
 MAPPING_ROW_SUMMARY_LIMIT = 200
 MAPPING_ROW_ISSUE_LIMIT = 200
 REQUIRED_MAPPING_COLUMNS = ("source_field", "target_field")
@@ -24,6 +30,10 @@ MAPPING_REVIEW_NOTE = (
 def build_mapping_review(
     loaded_manifest: LoadedManifest, schema_inventory: dict[str, Any]
 ) -> dict[str, Any]:
+    """
+    Build mapping_review.json by checking mapping files against observed source and
+    target schemas. It records structural issues and does not run transformations.
+    """
     schema_by_dataset = {dataset["dataset_id"]: dataset for dataset in schema_inventory["datasets"]}
     reviews = [
         review_mapping_entry(loaded_manifest, mapping, schema_by_dataset)
@@ -45,6 +55,10 @@ def review_mapping_entry(
     mapping: dict[str, Any],
     schema_by_dataset: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
+    """
+    Review one declared mapping file and return either row-level issues, missing
+    references, or file gaps in artifact form.
+    """
     mapping_id = mapping.get("mapping_id", mapping["path"])
     dataset_id = mapping.get("dataset_id")
     relative_path = mapping["path"]
@@ -59,6 +73,7 @@ def review_mapping_entry(
     )
 
     if not resolved_path.exists() or not resolved_path.is_file():
+        # Missing mapping files are review gaps; other evidence can still be inspected.
         base_review["status"] = "gap_found"
         base_review["warnings"].append(f"Mapping CSV file is missing: {relative_path}")
         return base_review
@@ -102,6 +117,10 @@ def base_mapping_review(
     source_columns: list[str],
     target_columns: list[str],
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for base
+    mapping review. It records evidence without changing workflow behavior.
+    """
     return {
         "mapping_id": mapping_id,
         "dataset_id": dataset_id,
@@ -134,6 +153,10 @@ def apply_mapping_checks(
     source_columns: list[str],
     target_columns: list[str],
 ) -> None:
+    """
+    Apply deterministic mapping checks after a CSV mapping has been parsed, including
+    missing references, duplicates, and unmapped columns.
+    """
     review["required_columns_present"] = True
     review["missing_required_columns"] = []
     review["mapping_row_count"] = len(rows)
@@ -174,10 +197,12 @@ def apply_mapping_checks(
         if metadata:
             row_summary["metadata"] = metadata
         if len(reviewed_rows) < MAPPING_ROW_SUMMARY_LIMIT:
+            # Keep representative row summaries, not a full copy of the mapping CSV.
             reviewed_rows.append(row_summary)
         if row_issues and len(rows_with_issues) < MAPPING_ROW_ISSUE_LIMIT:
             rows_with_issues.append(row_summary)
 
+    # This is structural mapping review only; reconciliation compares data later.
     source_counts = Counter(mapped_sources)
     target_counts = Counter(mapped_targets)
     review.update(
@@ -209,6 +234,10 @@ def apply_mapping_checks(
 
 
 def lightweight_metadata(row: dict[str, str | None]) -> dict[str, str]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    lightweight metadata. It records evidence without changing workflow behavior.
+    """
     return {
         column: str(row[column]).strip()
         for column in OPTIONAL_MAPPING_COLUMNS
@@ -217,6 +246,10 @@ def lightweight_metadata(row: dict[str, str | None]) -> dict[str, str]:
 
 
 def unique_in_order(values: list[str]) -> list[str]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    unique in order. It records evidence without changing workflow behavior.
+    """
     seen: set[str] = set()
     result: list[str] = []
     for value in values:
@@ -227,11 +260,19 @@ def unique_in_order(values: list[str]) -> list[str]:
 
 
 def unique_issue_values(rows: list[dict[str, Any]], field_name: str, issue: str) -> list[str]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    unique issue values. It records evidence without changing workflow behavior.
+    """
     values = [row[field_name] for row in rows if issue in row["issues"] and row[field_name]]
     return unique_in_order(values)
 
 
 def build_mapping_summary(reviews: list[dict[str, Any]]) -> dict[str, int]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for build
+    mapping summary. It records evidence without changing workflow behavior.
+    """
     return {
         "mappings_expected": len(reviews),
         "mappings_reviewed": sum(1 for review in reviews if review["status"] == "reviewed"),

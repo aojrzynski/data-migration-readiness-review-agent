@@ -1,3 +1,8 @@
+"""
+Reviews structural test evidence. It parses CSV result files for status counts and
+bounded failed/warning samples, records non-CSV metadata, and does not judge test
+sufficiency.
+"""
 from __future__ import annotations
 
 import csv
@@ -21,10 +26,15 @@ MESSAGE_COLUMNS = ("message", "details", "detail")
 FAILED_LIKE = {"fail", "failed", "error", "errored"}
 WARNING_LIKE = {"warning", "warn"}
 PASSED_LIKE = {"pass", "passed", "success", "succeeded"}
+# Samples are bounded so evidence artifacts do not become copied result files.
 SAMPLE_LIMIT = 50
 
 
 def build_test_evidence_review(loaded_manifest: LoadedManifest) -> dict[str, Any]:
+    """
+    Build test_evidence_review.json by structurally summarizing declared test evidence
+    and bounded failed or warning examples.
+    """
     reviews = [
         review_test_result(loaded_manifest, entry)
         for entry in loaded_manifest.data.get("test_results", [])
@@ -41,6 +51,10 @@ def build_test_evidence_review(loaded_manifest: LoadedManifest) -> dict[str, Any
 
 
 def review_test_result(loaded_manifest: LoadedManifest, entry: dict[str, Any]) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    review test result. It records evidence without changing workflow behavior.
+    """
     relative_path = entry["path"]
     test_result_id = entry.get("test_result_id", relative_path)
     resolved_path = resolve_inside_pack(
@@ -55,6 +69,7 @@ def review_test_result(loaded_manifest: LoadedManifest, entry: dict[str, Any]) -
         "warnings": [],
     }
     if not resolved_path.exists() or not resolved_path.is_file():
+        # Missing test evidence is a gap, not a fatal run error.
         base["status"] = "gap_found"
         base["warnings"].append(f"Test result file is missing: {relative_path}")
         return base
@@ -65,6 +80,10 @@ def review_test_result(loaded_manifest: LoadedManifest, entry: dict[str, Any]) -
 
 
 def extension_format(relative_path: str) -> str:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    extension format. It records evidence without changing workflow behavior.
+    """
     suffix = Path(relative_path).suffix.casefold().lstrip(".")
     if suffix in {"yaml", "yml"}:
         return "yaml"
@@ -76,6 +95,10 @@ def extension_format(relative_path: str) -> str:
 
 
 def review_csv_test_result(path: Path, base: dict[str, Any]) -> dict[str, Any]:
+    """
+    Parse one CSV test result file, detect a status column, classify statuses, and keep
+    bounded row summaries.
+    """
     base.update(
         {
             "headers": [],
@@ -120,6 +143,7 @@ def review_csv_test_result(path: Path, base: dict[str, Any]) -> dict[str, Any]:
                 if status_key in PASSED_LIKE:
                     base["passed_like_count"] += 1
                 if status_key in FAILED_LIKE | WARNING_LIKE and len(samples) < SAMPLE_LIMIT:
+                    # Keep a small set of examples; counts still summarize the whole file.
                     samples.append(
                         build_row_summary(row_number, row, id_column, status_column, message_column)
                     )
@@ -132,6 +156,10 @@ def review_csv_test_result(path: Path, base: dict[str, Any]) -> dict[str, Any]:
 
 
 def first_present(headers: list[str], candidates: tuple[str, ...]) -> str | None:
+    """
+    Helper used by the review workflow to build deterministic artifact content for first
+    present. It records evidence without changing workflow behavior.
+    """
     folded = {header.casefold(): header for header in headers}
     for candidate in candidates:
         if candidate in folded:
@@ -140,6 +168,10 @@ def first_present(headers: list[str], candidates: tuple[str, ...]) -> str | None
 
 
 def normalized_cell(row: dict[str, str | None], column: str | None) -> str:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    normalized cell. It records evidence without changing workflow behavior.
+    """
     if column is None:
         return ""
     return (row.get(column) or "").strip()
@@ -152,6 +184,11 @@ def build_row_summary(
     status_column: str | None,
     message_column: str | None,
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for build
+    row summary. It records evidence without changing workflow behavior.
+    """
+    # Include selected identifying/status columns only, not the full evidence row.
     summary: dict[str, Any] = {"row_number": row_number}
     if id_column is not None:
         summary[id_column] = normalized_cell(row, id_column)
@@ -163,6 +200,7 @@ def build_row_summary(
 
 
 def build_summary(reviews: list[dict[str, Any]]) -> dict[str, int]:
+    """Build compact summary counts for the artifact currently being assembled."""
     return {
         "test_results_expected": len(reviews),
         "test_results_reviewed": sum(1 for review in reviews if review["status"] == "reviewed"),

@@ -1,3 +1,8 @@
+"""
+Deterministic reconciliation between profiled source and target CSVs. It compares row
+counts, key overlap, and direct mapped fields with bounded samples, without
+transformations or a final migration decision.
+"""
 from __future__ import annotations
 
 import csv
@@ -9,6 +14,7 @@ from data_migration_readiness_review_agent.cli_constants import TOOL_NAME
 from data_migration_readiness_review_agent.manifest import resolve_inside_pack
 from data_migration_readiness_review_agent.models import LoadedManifest
 
+# Reconciliation samples are capped so artifacts show examples without dumping records.
 MISSING_KEY_SAMPLE_LIMIT = 20
 UNEXPECTED_KEY_SAMPLE_LIMIT = 20
 MISMATCH_SAMPLE_LIMIT = 50
@@ -25,6 +31,10 @@ def build_reconciliation_results(
     schema_inventory: dict[str, Any],
     mapping_review: dict[str, Any],
 ) -> dict[str, Any]:
+    """
+    Build reconciliation_results.json with deterministic row-count, key-overlap, and
+    direct mapped-field comparisons.
+    """
     profiles_by_dataset = {
         dataset["dataset_id"]: dataset for dataset in dataset_profiles["datasets"]
     }
@@ -60,6 +70,10 @@ def reconcile_dataset(
     dataset_schema: dict[str, Any] | None,
     mapping_reviews: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    """
+    Run reconciliation checks for one dataset when source and target CSVs and relevant
+    direct mappings are available.
+    """
     dataset_id = manifest_dataset["dataset_id"]
     key_columns = list(manifest_dataset["key_columns"])
     source_profile = (dataset_profile or {}).get("source", {})
@@ -142,6 +156,11 @@ def reconcile_dataset(
 def build_row_count_check(
     manifest_dataset: dict[str, Any], source_profile: dict[str, Any], target_profile: dict[str, Any]
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for build
+    row count check. It records evidence without changing workflow behavior.
+    """
+    # row_count_tolerance is evidence configuration, not a migration decision threshold.
     tolerance = int(manifest_dataset.get("row_count_tolerance", 0) or 0)
     source_count = (
         source_profile.get("row_count")
@@ -174,6 +193,10 @@ def build_row_count_check(
 
 
 def load_csv_rows(pack_path: Path, relative_path: str) -> tuple[list[dict[str, str]], str | None]:
+    """
+    Load CSV rows for reconciliation only, keeping row dictionaries local and using
+    downstream caps for reported samples.
+    """
     resolved_path = resolve_inside_pack(pack_path, Path(relative_path), description=relative_path)
     try:
         with resolved_path.open("r", encoding="utf-8", newline="") as file_obj:
@@ -186,18 +209,31 @@ def load_csv_rows(pack_path: Path, relative_path: str) -> tuple[list[dict[str, s
 
 
 def normalize_dict_row(row: dict[str, str | None]) -> dict[str, str]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    normalize dict row. It records evidence without changing workflow behavior.
+    """
     return {str(key): normalize_value(value or "") for key, value in row.items() if key is not None}
 
 
 def normalize_value(value: str) -> str:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    normalize value. It records evidence without changing workflow behavior.
+    """
     return value.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def build_first_row_by_key(
     rows: list[dict[str, str]], key_columns: list[str]
 ) -> dict[tuple[str, ...], dict[str, str]]:
+    """
+    Index rows by single or composite key, keeping the first row for duplicate keys so
+    comparison remains deterministic.
+    """
     row_map: dict[tuple[str, ...], dict[str, str]] = {}
     for row in rows:
+        # Composite keys are represented as tuples; duplicates keep the first row deterministically.
         key = tuple(row.get(column, "") for column in key_columns)
         row_map.setdefault(key, row)
     return row_map
@@ -208,8 +244,13 @@ def build_key_overlap(
     target_key_map: dict[tuple[str, ...], dict[str, str]],
     key_columns: list[str],
 ) -> dict[str, Any]:
+    """
+    Compare source and target key sets and return bounded samples of missing source and
+    unexpected target keys.
+    """
     source_keys = set(source_key_map)
     target_keys = set(target_key_map)
+    # Missing source keys and unexpected target keys answer different review questions.
     missing = sorted(source_keys - target_keys)
     unexpected = sorted(target_keys - source_keys)
     return {
@@ -231,6 +272,10 @@ def build_key_overlap(
 def skipped_key_overlap(
     missing_source_key_columns: list[str], missing_target_key_columns: list[str]
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    skipped key overlap. It records evidence without changing workflow behavior.
+    """
     return {
         "status": "skipped",
         "source_key_count": 0,
@@ -251,6 +296,10 @@ def compare_mapped_fields(
     key_columns: list[str],
     mapping_reviews: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    """
+    Compare direct source-to-target mapped fields for matching keys and cap reported
+    mismatch samples.
+    """
     direct_mappings, skipped_mappings = collect_direct_mappings(mapping_reviews)
     shared_keys = sorted(set(source_key_map) & set(target_key_map))
     compared_cell_count = 0
@@ -269,6 +318,7 @@ def compare_mapped_fields(
             else:
                 mismatched_cell_count += 1
                 if len(mismatch_samples) < MISMATCH_SAMPLE_LIMIT:
+                    # Cap samples; counts remain aggregate evidence for the full comparison.
                     mismatch_samples.append(
                         {
                             "key": key_to_sample(key_columns, key),
@@ -299,6 +349,10 @@ def compare_mapped_fields(
 
 
 def skipped_field_comparison(reason: str) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    skipped field comparison. It records evidence without changing workflow behavior.
+    """
     return {
         "status": "skipped",
         "mapped_fields_compared": 0,
@@ -315,6 +369,10 @@ def skipped_field_comparison(reason: str) -> dict[str, Any]:
 def collect_direct_mappings(
     mapping_reviews: list[dict[str, Any]],
 ) -> tuple[list[dict[str, str]], list[dict[str, Any]]]:
+    """
+    Collect valid direct mappings for reconciliation and skip transformed mappings
+    because this tool does not execute transformation logic.
+    """
     direct_mappings: list[dict[str, str]] = []
     skipped_mappings: list[dict[str, Any]] = []
     for review in mapping_reviews:
@@ -329,6 +387,7 @@ def collect_direct_mappings(
                 continue
             transformation = str(row.get("metadata", {}).get("transformation", "")).strip()
             if transformation:
+                # Transformed mappings are skipped; this tool does not execute them.
                 skipped_mappings.append(
                     {
                         "mapping_id": review.get("mapping_id"),
@@ -344,6 +403,10 @@ def collect_direct_mappings(
 
 
 def group_mapping_reviews(mapping_review: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for group
+    mapping reviews. It records evidence without changing workflow behavior.
+    """
     grouped: dict[str, list[dict[str, Any]]] = {}
     for review in mapping_review.get("mapping_reviews", []):
         dataset_id = review.get("dataset_id")
@@ -353,6 +416,10 @@ def group_mapping_reviews(mapping_review: dict[str, Any]) -> dict[str, list[dict
 
 
 def key_to_sample(key_columns: list[str], key: tuple[str, ...]) -> dict[str, str]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for key
+    to sample. It records evidence without changing workflow behavior.
+    """
     return dict(zip(key_columns, key, strict=True))
 
 
@@ -362,6 +429,10 @@ def dataset_status(
     key_overlap: dict[str, Any],
     field_comparison: dict[str, Any],
 ) -> str:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    dataset status. It records evidence without changing workflow behavior.
+    """
     if row_count_check["status"] == "skipped" or key_overlap["status"] == "skipped":
         return "gap_found"
     if warnings or field_comparison["status"] == "warning":
@@ -370,6 +441,10 @@ def dataset_status(
 
 
 def build_reconciliation_summary(datasets: list[dict[str, Any]]) -> dict[str, int]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for build
+    reconciliation summary. It records evidence without changing workflow behavior.
+    """
     return {
         "datasets_reconciled": sum(
             1 for dataset in datasets if dataset["status"] in {"reviewed", "warning"}

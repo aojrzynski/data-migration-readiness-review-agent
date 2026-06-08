@@ -1,3 +1,8 @@
+"""
+Reviews sensitive-field indicators from manifest hints, built-in column-name patterns,
+mappings, and contracts. Matching is normalized and case-insensitive, includes no raw
+sensitive values, and is not a legal or privacy classification.
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -40,6 +45,11 @@ def build_sensitive_field_review(
     mapping_review: dict[str, Any],
     contract_review: dict[str, Any],
 ) -> dict[str, Any]:
+    """
+    Build sensitive_field_review.json from column-name indicators, manifest hints,
+    mapping mentions, and contract mentions without including raw values.
+    """
+    # Indicators come from names and hints only; raw sensitive values are never inspected here.
     manifest_hints = [
         str(hint).strip()
         for hint in loaded_manifest.data.get("sensitive_field_hints", [])
@@ -97,6 +107,10 @@ def build_sensitive_field_review(
 
 
 def group_by_dataset(reviews: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for group
+    by dataset. It records evidence without changing workflow behavior.
+    """
     grouped: dict[str, list[dict[str, Any]]] = {}
     for review in reviews:
         dataset_id = review.get("dataset_id")
@@ -108,6 +122,10 @@ def group_by_dataset(reviews: list[dict[str, Any]]) -> dict[str, list[dict[str, 
 def review_side(
     schema_side: dict[str, Any], profile_side: dict[str, Any], manifest_hints: list[str]
 ) -> dict[str, Any]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    review side. It records evidence without changing workflow behavior.
+    """
     columns = list(schema_side.get("columns", []))
     flagged_columns = [flag_column(column, manifest_hints) for column in columns]
     flagged = [flag for flag in flagged_columns if flag]
@@ -124,6 +142,11 @@ def review_side(
 
 
 def flag_column(column_name: str, manifest_hints: list[str]) -> dict[str, Any] | None:
+    """
+    Helper used by the review workflow to build deterministic artifact content for flag
+    column. It records evidence without changing workflow behavior.
+    """
+    # "Indicator" wording matters: this flags follow-up evidence, not a classification.
     for hint in manifest_hints:
         if names_match(column_name, hint):
             return {
@@ -146,12 +169,21 @@ def flag_column(column_name: str, manifest_hints: list[str]) -> dict[str, Any] |
 
 
 def names_match(column_name: str, indicator: str) -> bool:
+    """
+    Helper used by the review workflow to build deterministic artifact content for names
+    match. It records evidence without changing workflow behavior.
+    """
+    # Normalize names so case and separators do not hide obvious indicator matches.
     return column_name.casefold() == indicator.casefold() or normalize_name(
         column_name
     ) == normalize_name(indicator)
 
 
 def normalize_name(value: str) -> str:
+    """
+    Normalize names for case-insensitive indicator matching across manifests, schemas,
+    mappings, and contracts.
+    """
     return "".join(character for character in value.casefold() if character not in {"_", "-", " "})
 
 
@@ -160,6 +192,10 @@ def build_mapping_mentions(
     source_flags: dict[str, dict[str, Any]],
     target_flags: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
+    """
+    Find mapping rows that mention sensitive-field indicator columns without exposing
+    underlying data values.
+    """
     mentions: list[dict[str, Any]] = []
     for review in mapping_reviews:
         for row in review.get("reviewed_mapping_rows", []):
@@ -183,6 +219,10 @@ def build_mapping_mentions(
 def build_contract_mentions(
     contract_reviews: list[dict[str, Any]], target_flags: dict[str, dict[str, Any]]
 ) -> list[dict[str, Any]]:
+    """
+    Find contract fields that mention sensitive-field indicator columns without
+    assigning legal or privacy classifications.
+    """
     mentions: list[dict[str, Any]] = []
     for review in contract_reviews:
         for field in review.get("contract_fields", []):
@@ -200,6 +240,7 @@ def build_contract_mentions(
 
 
 def build_summary(datasets: list[dict[str, Any]]) -> dict[str, int]:
+    """Build compact summary counts for the artifact currently being assembled."""
     return {
         "datasets_reviewed": len(datasets),
         "flagged_source_columns": sum(
@@ -224,6 +265,10 @@ def build_summary(datasets: list[dict[str, Any]]) -> dict[str, int]:
 
 
 def unique_in_order(values: list[str]) -> list[str]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    unique in order. It records evidence without changing workflow behavior.
+    """
     seen: set[str] = set()
     result: list[str] = []
     for value in values:

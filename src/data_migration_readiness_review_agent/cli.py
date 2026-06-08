@@ -1,3 +1,8 @@
+"""
+Command-line entry point. The CLI stays thin: it parses arguments, validates simple
+constraints, builds RunConfig, dispatches an orchestrator, and prints written artifacts
+and notes.
+"""
 from __future__ import annotations
 
 import argparse
@@ -48,6 +53,10 @@ ARTIFACT_PRINT_LABELS = {
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """
+    Create the CLI argument parser without running the workflow. The parser defines
+    flags but does not inspect pack contents.
+    """
     parser = argparse.ArgumentParser(
         prog="data-migration-readiness-review",
         description="Inventory and profile evidence referenced by a local migration pack manifest.",
@@ -114,6 +123,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def validate_pack_path(parser: argparse.ArgumentParser, pack_path: Path | None) -> Path:
+    """
+    Resolve and validate the migration pack directory supplied by the CLI. This keeps
+    the workflow anchored to a local directory.
+    """
     if pack_path is None:
         parser.error("--pack is required unless --version is used")
     resolved_pack_path = pack_path.expanduser().resolve()
@@ -123,14 +136,24 @@ def validate_pack_path(parser: argparse.ArgumentParser, pack_path: Path | None) 
 
 
 def validate_output_dir(output_dir: Path | None) -> Path:
+    """
+    Resolve the output directory for local artifacts. The directory may be created later
+    by artifact writers.
+    """
     if output_dir is None:
         return Path("outputs").resolve()
     return output_dir.expanduser().resolve()
 
 
 def build_run_config(args: argparse.Namespace, parser: argparse.ArgumentParser) -> RunConfig:
+    """
+    Convert parsed CLI arguments into RunConfig after checking simple CLI-only
+    constraints such as conflicting LLM flags and input caps.
+    """
+    # These flags describe opposite LLM choices, so reject the pair before any work starts.
     if args.no_llm and args.llm_review:
         parser.error("--no-llm cannot be used with --llm-review")
+    # The LLM context cap must be positive so prompt construction can always make progress.
     if args.llm_max_input_chars < 1:
         parser.error("--llm-max-input-chars must be a positive integer")
     return RunConfig(
@@ -147,20 +170,31 @@ def build_run_config(args: argparse.Namespace, parser: argparse.ArgumentParser) 
 
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> RunResult:
+    """
+    Dispatch a validated RunConfig to the selected orchestrator and surface workflow
+    setup errors as CLI errors.
+    """
     config = build_run_config(args, parser)
     try:
+        # Standard and LangGraph modes choose orchestration only; artifact meaning stays the same.
         if config.orchestrator == "standard":
             return run_standard_review(config)
         if config.orchestrator == "langgraph":
             return run_langgraph_review(config)
     except LangGraphDependencyError as exc:
+        # Missing optional graph support is a setup problem, so show it as a clear CLI error.
         parser.error(str(exc))
     except ManifestError as exc:
+        # Manifest problems are user-actionable and should not produce a Python traceback.
         parser.error(str(exc))
     parser.error(f"Unsupported orchestrator: {config.orchestrator}")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """
+    CLI entry point used by the console script. It runs the workflow and prints
+    artifacts in registry order.
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
     result = run(args, parser)

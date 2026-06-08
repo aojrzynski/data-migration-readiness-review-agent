@@ -1,3 +1,7 @@
+"""
+Central registry for artifact file names and deterministic write order. The order
+supports predictable CLI output, trace metadata, tests, and human review.
+"""
 from __future__ import annotations
 
 INVENTORY_FILE_NAME = "migration_inventory.json"
@@ -14,6 +18,8 @@ REVIEWER_SUMMARY_FILE_NAME = "reviewer_summary.md"
 LLM_REVIEWER_NOTES_FILE_NAME = "llm_reviewer_notes.json"
 TRACE_FILE_NAME = "migration_readiness_trace.json"
 
+# Keep one artifact order for predictable CLI output, trace metadata, tests,
+# and human review. New artifacts should be inserted deliberately here.
 ORDERED_ARTIFACT_FILE_NAMES = (
     INVENTORY_FILE_NAME,
     DATASET_PROFILES_FILE_NAME,

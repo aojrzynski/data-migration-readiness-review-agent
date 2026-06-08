@@ -1,3 +1,7 @@
+"""
+Default deterministic workflow coordinator. It builds artifacts in order, passes them in
+memory, creates trace metadata, and writes local artifacts.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -93,6 +97,10 @@ STANDARD_ORCHESTRATION_STEPS = [
 
 @dataclass(frozen=True)
 class ReviewArtifacts:
+    """
+    In-memory bundle of deterministic artifacts. The standard orchestrator builds this
+    before writing so downstream stages read consistent artifact objects.
+    """
     inventory: dict[str, Any]
     dataset_profiles: dict[str, Any]
     schema_inventory: dict[str, Any]
@@ -108,6 +116,10 @@ class ReviewArtifacts:
 
 
 def build_dataset_profile_summary(dataset_profiles: dict[str, Any]) -> dict[str, int]:
+    """
+    Summarize dataset profile artifacts for trace metadata without copying full profile
+    payloads into the trace.
+    """
     datasets = dataset_profiles["datasets"]
     expected_files = len(datasets) * 2
     profiled_files = 0
@@ -127,6 +139,10 @@ def build_dataset_profile_summary(dataset_profiles: dict[str, Any]) -> dict[str,
 
 
 def build_llm_review_summary(llm_reviewer_notes: dict[str, Any]) -> dict[str, Any]:
+    """
+    Summarize optional LLM note status for trace metadata without making the LLM
+    artifact authoritative.
+    """
     return {
         "llm_requested": llm_reviewer_notes["llm_requested"],
         "llm_performed": llm_reviewer_notes["status"] == "llm_review_completed",
@@ -138,6 +154,10 @@ def build_llm_review_summary(llm_reviewer_notes: dict[str, Any]) -> dict[str, An
 
 
 def trace_notes() -> list[str]:
+    """
+    Create trace notes that explain orchestration and optional LLM choices without
+    duplicating artifacts.
+    """
     return [
         INVENTORY_NOTE,
         PROFILE_NOTE,
@@ -175,12 +195,17 @@ def build_trace(
     orchestration_steps: list[str] | None = None,
     orchestration_implementation: str | None = None,
 ) -> dict[str, Any]:
+    """
+    Build migration_readiness_trace.json with ordered step summaries and orchestration
+    metadata.
+    """
     orchestration: dict[str, Any] = {
         "mode": orchestration_mode,
         "steps": orchestration_steps or STANDARD_ORCHESTRATION_STEPS,
     }
     if orchestration_implementation is not None:
         orchestration["implementation"] = orchestration_implementation
+    # Trace stores summaries and orchestration metadata instead of duplicating full artifacts.
     return {
         "tool_name": TOOL_NAME,
         "package_version": __version__,
@@ -210,6 +235,11 @@ def build_trace(
 
 
 def run_standard_review(config: RunConfig) -> RunResult:
+    """
+    Run the default deterministic review sequence, build artifacts in memory, then write
+    them locally in registry order.
+    """
+    # Main workflow sequence: each artifact feeds later deterministic review stages.
     loaded_manifest = load_manifest(config.pack_path, config.manifest_path)
     inventory = build_inventory(loaded_manifest)
     dataset_profiles = build_dataset_profiles(loaded_manifest)
@@ -238,6 +268,7 @@ def run_standard_review(config: RunConfig) -> RunResult:
         test_evidence_review=test_evidence_review,
         evidence_coverage_review=evidence_coverage_review,
     )
+    # The Markdown summary is rendered from review_pack so JSON remains the source layer.
     reviewer_summary_path = config.output_dir / REVIEWER_SUMMARY_FILE_NAME
     llm_reviewer_notes = build_llm_reviewer_notes(
         review_pack=review_pack,
@@ -263,6 +294,7 @@ def run_standard_review(config: RunConfig) -> RunResult:
         llm_review_summary=build_llm_review_summary(llm_reviewer_notes),
         orchestration_mode="standard",
     )
+    # Build artifacts in memory first so the trace and writes describe one consistent run.
     artifacts = ReviewArtifacts(
         inventory=inventory,
         dataset_profiles=dataset_profiles,
@@ -287,6 +319,11 @@ def run_standard_review(config: RunConfig) -> RunResult:
 
 
 def write_review_artifacts(artifacts: ReviewArtifacts, output_dir: Path) -> dict[str, Path]:
+    """
+    Write deterministic artifacts using the centralized artifact registry order and
+    return their local paths.
+    """
+    # Artifact order comes from artifact_registry for stable writes and stable CLI output.
     artifact_payloads = {
         INVENTORY_FILE_NAME: artifacts.inventory,
         DATASET_PROFILES_FILE_NAME: artifacts.dataset_profiles,
@@ -304,6 +341,7 @@ def write_review_artifacts(artifacts: ReviewArtifacts, output_dir: Path) -> dict
     written_paths: dict[str, Path] = {}
     for file_name in ORDERED_ARTIFACT_FILE_NAMES:
         if file_name == REVIEWER_SUMMARY_FILE_NAME:
+            # reviewer_summary.md is derived from review_pack, not built independently.
             written_paths[file_name] = write_reviewer_summary(
                 artifacts.review_pack, output_dir, REVIEWER_SUMMARY_FILE_NAME
             )

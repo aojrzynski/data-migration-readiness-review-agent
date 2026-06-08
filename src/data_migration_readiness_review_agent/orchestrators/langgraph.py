@@ -1,3 +1,8 @@
+"""
+Optional LangGraph orchestration for the same review workflow. The dependency is lazy,
+the graph is sequential, artifact semantics match the standard orchestrator, and it adds
+no authority.
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -57,7 +62,12 @@ class LangGraphDependencyError(RuntimeError):
 
 
 def _load_langgraph_components() -> tuple[Any, Any, Any]:
+    """
+    Lazy-load LangGraph classes only when the optional LangGraph orchestrator is
+    requested.
+    """
     try:
+        # Lazy import makes missing optional graph support a clear CLI setup error.
         from langgraph.graph import END, START, StateGraph
     except ImportError as exc:
         raise LangGraphDependencyError(LANGGRAPH_DEPENDENCY_ERROR) from exc
@@ -65,14 +75,24 @@ def _load_langgraph_components() -> tuple[Any, Any, Any]:
 
 
 def _add_sequential_node(graph: Any, previous: str, node_name: str, node: Any) -> str:
+    """
+    Private helper for add sequential node used to keep deterministic artifact
+    construction small and readable.
+    """
     graph.add_node(node_name, node)
     graph.add_edge(previous, node_name)
     return node_name
 
 
 def _build_graph(StateGraph: Any, START: Any, END: Any) -> Any:
+    """
+    Build a sequential LangGraph that mirrors the standard orchestrator so only
+    orchestration changes, not artifact meaning.
+    """
+    # The graph is sequential in this version to mirror the standard orchestrator exactly.
     graph = StateGraph(dict)
     previous = START
+    # Each node mirrors one standard workflow step; only orchestration metadata changes.
     for node_name, node in [
         ("load_manifest", _load_manifest),
         ("build_inventory", _build_inventory),
@@ -95,27 +115,47 @@ def _build_graph(StateGraph: Any, START: Any, END: Any) -> Any:
 
 
 def _load_manifest(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    Private helper for load manifest used to keep deterministic artifact construction
+    small and readable.
+    """
     config: RunConfig = state["config"]
     state["loaded_manifest"] = load_manifest(config.pack_path, config.manifest_path)
     return state
 
 
 def _build_inventory(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds inventory from earlier state while preserving standard
+    artifact semantics.
+    """
     state["inventory"] = build_inventory(state["loaded_manifest"])
     return state
 
 
 def _build_dataset_profiles(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds dataset profiles from earlier state while preserving
+    standard artifact semantics.
+    """
     state["dataset_profiles"] = build_dataset_profiles(state["loaded_manifest"])
     return state
 
 
 def _build_schema_inventory(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds schema inventory from earlier state while preserving
+    standard artifact semantics.
+    """
     state["schema_inventory"] = build_schema_inventory(state["dataset_profiles"])
     return state
 
 
 def _build_mapping_review(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds mapping review from earlier state while preserving
+    standard artifact semantics.
+    """
     state["mapping_review"] = build_mapping_review(
         state["loaded_manifest"], state["schema_inventory"]
     )
@@ -123,6 +163,10 @@ def _build_mapping_review(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_contract_review(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds contract review from earlier state while preserving
+    standard artifact semantics.
+    """
     state["contract_review"] = build_contract_review(
         state["loaded_manifest"], state["dataset_profiles"], state["schema_inventory"]
     )
@@ -130,6 +174,10 @@ def _build_contract_review(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_reconciliation_results(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds reconciliation results from earlier state while
+    preserving standard artifact semantics.
+    """
     state["reconciliation_results"] = build_reconciliation_results(
         state["loaded_manifest"],
         state["dataset_profiles"],
@@ -140,6 +188,10 @@ def _build_reconciliation_results(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_sensitive_field_review(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds sensitive field review from earlier state while
+    preserving standard artifact semantics.
+    """
     state["sensitive_field_review"] = build_sensitive_field_review(
         state["loaded_manifest"],
         state["schema_inventory"],
@@ -151,16 +203,28 @@ def _build_sensitive_field_review(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_test_evidence_review(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds test evidence review from earlier state while preserving
+    standard artifact semantics.
+    """
     state["test_evidence_review"] = build_test_evidence_review(state["loaded_manifest"])
     return state
 
 
 def _build_evidence_coverage_review(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds evidence coverage review from earlier state while
+    preserving standard artifact semantics.
+    """
     state["evidence_coverage_review"] = build_evidence_coverage_review(state["loaded_manifest"])
     return state
 
 
 def _build_review_pack(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds review pack from earlier state while preserving standard
+    artifact semantics.
+    """
     state["review_pack"] = build_review_pack(
         inventory=state["inventory"],
         dataset_profiles=state["dataset_profiles"],
@@ -176,6 +240,10 @@ def _build_review_pack(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_llm_reviewer_notes(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds llm reviewer notes from earlier state while preserving
+    standard artifact semantics.
+    """
     config: RunConfig = state["config"]
     state["llm_reviewer_notes"] = build_llm_reviewer_notes(
         review_pack=state["review_pack"],
@@ -188,7 +256,12 @@ def _build_llm_reviewer_notes(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_trace(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    LangGraph node that builds trace from earlier state while preserving standard
+    artifact semantics.
+    """
     config: RunConfig = state["config"]
+    # Trace mode records LangGraph orchestration; artifact meanings remain unchanged.
     state["trace"] = build_trace(
         config=config,
         resolved_manifest_path=state["loaded_manifest"].manifest_path,
@@ -212,6 +285,10 @@ def _build_trace(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _write_artifacts(state: dict[str, Any]) -> dict[str, Any]:
+    """
+    Private helper for write artifacts used to keep deterministic artifact construction
+    small and readable.
+    """
     artifacts = ReviewArtifacts(
         inventory=state["inventory"],
         dataset_profiles=state["dataset_profiles"],
@@ -231,6 +308,11 @@ def _write_artifacts(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def run_langgraph_review(config: RunConfig) -> RunResult:
+    """
+    Run the optional LangGraph workflow and write the same artifacts with trace metadata
+    indicating graph orchestration.
+    """
+    # Requesting LangGraph changes coordination only and adds no reviewer authority.
     StateGraph, START, END = _load_langgraph_components()
     graph = _build_graph(StateGraph, START, END)
     state = graph.invoke({"config": config})

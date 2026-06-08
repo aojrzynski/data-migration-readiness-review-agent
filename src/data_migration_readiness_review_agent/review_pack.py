@@ -1,3 +1,8 @@
+"""
+Builds review_pack.json as the deterministic aggregation layer. It groups findings,
+severity labels, follow-up checklist items, and source artifact references without
+producing a score or decision.
+"""
 from __future__ import annotations
 
 import json
@@ -59,6 +64,11 @@ def build_review_pack(
     test_evidence_review: dict[str, Any],
     evidence_coverage_review: dict[str, Any],
 ) -> dict[str, Any]:
+    """
+    Aggregate deterministic artifacts into review_pack.json findings, sections, summary
+    counts, and follow-up checklist items.
+    """
+    # The review pack aggregates deterministic artifacts only; optional LLM text is excluded.
     findings: list[dict[str, Any]] = []
     findings.extend(inventory_findings(inventory))
     findings.extend(dataset_profile_findings(dataset_profiles))
@@ -92,6 +102,7 @@ def build_review_pack(
         "follow_up_checklist": follow_up,
         "notes": [REVIEW_PACK_NOTE],
     }
+    # Validate generated wording before it can become reviewer-facing artifact text.
     assert_safe_generated_text(
         json.dumps(pack, sort_keys=True), context="review_pack.json generated wording"
     )
@@ -110,13 +121,19 @@ def finding(
     dataset_id: str | None = None,
     human_follow_up: str | None = None,
 ) -> dict[str, Any]:
+    """
+    Create one normalized finding that points back to source artifacts and uses severity
+    as a label, not a score.
+    """
     item: dict[str, Any] = {
         "finding_id": finding_id,
         "category": category,
         "status": status,
+        # Severity is a triage label for humans, not a readiness score.
         "severity": severity,
         "message": message,
         "source_artifact": source_artifact,
+        # Findings point back to source artifacts so reviewers can inspect evidence directly.
         "evidence": {"artifact": source_artifact, "path": path},
     }
     if dataset_id:
@@ -127,6 +144,10 @@ def finding(
 
 
 def inventory_findings(inventory: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    inventory findings. It records evidence without changing workflow behavior.
+    """
     return [
         finding(
             finding_id=f"inventory:{gap['gap_id']}",
@@ -143,6 +164,10 @@ def inventory_findings(inventory: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def dataset_profile_findings(dataset_profiles: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    dataset profile findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, dataset in enumerate(dataset_profiles.get("datasets", [])):
         dataset_id = dataset["dataset_id"]
@@ -217,6 +242,10 @@ def dataset_profile_findings(dataset_profiles: dict[str, Any]) -> list[dict[str,
 
 
 def mapping_findings(mapping_review: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    mapping findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, review in enumerate(mapping_review.get("mapping_reviews", [])):
         dataset_id = review.get("dataset_id")
@@ -279,6 +308,10 @@ def mapping_findings(mapping_review: dict[str, Any]) -> list[dict[str, Any]]:
 def _mapping_finding(
     review: dict[str, Any], base: str, suffix: str, status: str, severity: str, message: str
 ) -> dict[str, Any]:
+    """
+    Private helper for mapping finding used to keep deterministic artifact construction
+    small and readable.
+    """
     return finding(
         finding_id=f"mapping:{review['mapping_id']}:{suffix}",
         category="mapping",
@@ -293,6 +326,10 @@ def _mapping_finding(
 
 
 def contract_findings(contract_review: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    contract findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, review in enumerate(contract_review.get("contract_reviews", [])):
         base = f"contract_reviews[{index}]"
@@ -350,6 +387,10 @@ def contract_findings(contract_review: dict[str, Any]) -> list[dict[str, Any]]:
 def _contract_finding(
     review: dict[str, Any], base: str, suffix: str, status: str, severity: str, message: str
 ) -> dict[str, Any]:
+    """
+    Private helper for contract finding used to keep deterministic artifact construction
+    small and readable.
+    """
     return finding(
         finding_id=f"contract:{review['contract_id']}:{suffix}",
         category="contracts",
@@ -364,6 +405,10 @@ def _contract_finding(
 
 
 def reconciliation_findings(reconciliation_results: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    reconciliation findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, dataset in enumerate(reconciliation_results.get("datasets", [])):
         dataset_id = dataset["dataset_id"]
@@ -444,6 +489,10 @@ def reconciliation_findings(reconciliation_results: dict[str, Any]) -> list[dict
 def _recon(
     dataset_id: str, suffix: str, status: str, severity: str, message: str, path: str
 ) -> dict[str, Any]:
+    """
+    Private helper for recon used to keep deterministic artifact construction small and
+    readable.
+    """
     return finding(
         finding_id=f"reconciliation:{dataset_id}:{suffix}",
         category="reconciliation",
@@ -460,6 +509,10 @@ def _recon(
 
 
 def sensitive_field_findings(sensitive_field_review: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    sensitive field findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, dataset in enumerate(sensitive_field_review.get("datasets", [])):
         dataset_id = dataset["dataset_id"]
@@ -498,6 +551,10 @@ def sensitive_field_findings(sensitive_field_review: dict[str, Any]) -> list[dic
 
 
 def test_evidence_findings(test_evidence_review: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for test
+    evidence findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, review in enumerate(test_evidence_review.get("test_results", [])):
         base = f"test_results[{index}]"
@@ -558,6 +615,10 @@ def test_evidence_findings(test_evidence_review: dict[str, Any]) -> list[dict[st
 
 
 def evidence_coverage_findings(evidence_coverage_review: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    evidence coverage findings. It records evidence without changing workflow behavior.
+    """
     findings: list[dict[str, Any]] = []
     for index, item in enumerate(evidence_coverage_review.get("expected_evidence_types", [])):
         evidence_type = item["evidence_type"]
@@ -593,6 +654,10 @@ def evidence_coverage_findings(evidence_coverage_review: dict[str, Any]) -> list
 
 
 def build_follow_up_checklist(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Create deterministic follow-up prompts from findings so reviewers know what evidence
+    to inspect next.
+    """
     checklist: list[dict[str, Any]] = []
     seen: set[tuple[str, str | None]] = set()
     for item in findings:
@@ -616,6 +681,10 @@ def build_follow_up_checklist(findings: list[dict[str, Any]]) -> list[dict[str, 
 
 
 def follow_up_message(category: str, dataset_id: str | None) -> str:
+    """
+    Helper used by the review workflow to build deterministic artifact content for
+    follow up message. It records evidence without changing workflow behavior.
+    """
     scope = f" for {dataset_id}" if dataset_id else ""
     messages = {
         "inventory": "Review missing files or evidence gaps in the manifest references.",
@@ -633,6 +702,10 @@ def follow_up_message(category: str, dataset_id: str | None) -> str:
 
 
 def build_sections(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Group findings into reviewer-friendly sections while preserving source artifact
+    references.
+    """
     return [
         {
             "section_id": category,
@@ -665,6 +738,7 @@ def build_summary(
     evidence_coverage_review: dict[str, Any],
     follow_up_items: int,
 ) -> dict[str, int]:
+    """Build compact summary counts for the artifact currently being assembled."""
     return {
         "datasets": int(inventory["counts"]["datasets"]),
         "referenced_files_missing": int(inventory["counts"]["referenced_files_missing"]),
