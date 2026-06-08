@@ -1,3 +1,8 @@
+"""
+Small deterministic guard for generated reviewer-facing wording. It flags forbidden
+positive verdict phrases, allows explicit negated boundary statements, and is not a
+natural-language compliance validator.
+"""
 from __future__ import annotations
 
 import re
@@ -30,14 +35,24 @@ _ALLOWED_NEGATED_PATTERNS = (
 
 
 def _remove_allowed_negated_context(text: str) -> str:
+    """
+    Private helper for remove allowed negated context used to keep deterministic
+    artifact construction small and readable.
+    """
     checked = text
+    # Boundary statements such as "does not approve" are allowed because they reduce risk.
     for pattern in _ALLOWED_NEGATED_PATTERNS:
         checked = pattern.sub(" ", checked)
     return checked
 
 
 def find_forbidden_terms(text: str) -> list[str]:
+    """
+    Return forbidden positive-verdict terms found in generated text after removing
+    allowed negated boundary wording.
+    """
     checked = _remove_allowed_negated_context(text).casefold()
+    # Ignore artifact names like migration_readiness_trace.json unless verdict wording appears.
     found: list[str] = []
     for phrase in FORBIDDEN_VERDICT_PHRASES:
         if phrase.casefold() in checked:
@@ -46,6 +61,11 @@ def find_forbidden_terms(text: str) -> list[str]:
 
 
 def assert_safe_generated_text(text: str, *, context: str) -> None:
+    """
+    Fail fast if generated reviewer-facing text contains forbidden positive-verdict
+    wording.
+    """
+    # This guard is deliberately conservative and small; it is not full NLP validation.
     found = find_forbidden_terms(text)
     if found:
         terms = ", ".join(found)

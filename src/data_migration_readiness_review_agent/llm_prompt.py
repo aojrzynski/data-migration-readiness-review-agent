@@ -1,8 +1,14 @@
+"""
+Builds bounded LLM prompt context from review_pack.json only. It caps findings and
+follow-up items, excludes raw rows and raw sensitive values, and does not transfer
+authority to the optional LLM.
+"""
 from __future__ import annotations
 
 import json
 from typing import Any
 
+# Prompt context is bounded even before the character cap is applied.
 MAX_FINDINGS_SENT = 50
 MAX_FOLLOW_UP_ITEMS_SENT = 50
 
@@ -47,6 +53,7 @@ def build_llm_context(
     review_pack: dict[str, Any], *, max_input_chars: int
 ) -> tuple[str, dict[str, Any]]:
     """Build bounded LLM context from the in-memory review pack only."""
+    # Send only review_pack-derived context so raw rows and previews stay out of the LLM.
     bounded_context = {
         "boundary_instructions": [
             "Produce supplemental reviewer notes only.",
@@ -63,10 +70,12 @@ def build_llm_context(
         ],
     }
     original_context = json.dumps(bounded_context, indent=2, sort_keys=True)
+    # Apply the final character cap requested by the CLI.
     sent_context = original_context[:max_input_chars]
     input_truncated = len(sent_context) < len(original_context)
     input_policy = {
         "source": "review_pack",
+        # Record exclusions explicitly so reviewers know no raw mismatch values were sent.
         "raw_data_rows_included": False,
         "raw_sensitive_values_included": False,
         "max_input_chars": max_input_chars,

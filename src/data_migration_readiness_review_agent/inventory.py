@@ -1,3 +1,8 @@
+"""
+Builds migration_inventory.json from manifest references. Inventory records file
+presence and lightweight metadata only; deeper data checks happen in downstream
+artifacts.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,11 +20,17 @@ INVENTORY_NOTE = (
 
 
 def build_inventory(loaded_manifest: LoadedManifest) -> dict[str, Any]:
+    """
+    Build migration_inventory.json from manifest declarations. The output is
+    deterministic file metadata and gap records, not a data-content review.
+    """
     manifest = loaded_manifest.data
     references = collect_file_references(manifest)
+    # Inventory checks file presence and metadata only; it does not parse file contents.
     referenced_files = [
         inspect_file_reference(loaded_manifest.pack_path, ref) for ref in references
     ]
+    # Missing referenced files are collected as gaps for later human review.
     gaps = [
         build_missing_file_gap(file_info)
         for file_info in referenced_files
@@ -57,6 +68,7 @@ def build_inventory(loaded_manifest: LoadedManifest) -> dict[str, Any]:
 
 
 def build_dataset_entry(dataset: dict[str, Any]) -> dict[str, Any]:
+    """Copy the manifest dataset fields that belong in migration_inventory.json."""
     entry = {
         "dataset_id": dataset["dataset_id"],
         "source_path": dataset["source_path"],
@@ -70,6 +82,7 @@ def build_dataset_entry(dataset: dict[str, Any]) -> dict[str, Any]:
 
 
 def collect_file_references(manifest: dict[str, Any]) -> list[FileReference]:
+    """Collect every manifest-declared file path that inventory should check for presence."""
     references: list[FileReference] = []
     for dataset in manifest["datasets"]:
         dataset_id = dataset["dataset_id"]
@@ -131,6 +144,7 @@ def collect_file_references(manifest: dict[str, Any]) -> list[FileReference]:
 
 
 def inspect_file_reference(pack_path: Path, reference: FileReference) -> dict[str, Any]:
+    """Resolve one manifest file reference and return local file metadata when it exists."""
     resolved = resolve_inside_pack(
         pack_path, Path(reference.path), description=reference.reference_id
     )
@@ -155,6 +169,7 @@ def inspect_file_reference(pack_path: Path, reference: FileReference) -> dict[st
 
 
 def build_missing_file_gap(file_info: dict[str, Any]) -> dict[str, str]:
+    """Create the inventory gap entry for one missing manifest-referenced file."""
     return {
         "gap_id": f"missing_file:{file_info['reference_id']}",
         "status": "gap_found",

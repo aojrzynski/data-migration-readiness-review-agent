@@ -1,3 +1,8 @@
+"""
+Optional LLM reviewer notes. Default runs do not call an LLM; OpenAI is an optional lazy
+import, model selection comes from CLI/env, outputs are parsed and checked for safe
+language, and LLM failure does not block deterministic artifacts.
+"""
 from __future__ import annotations
 
 import json
@@ -26,6 +31,7 @@ LlmCaller = Callable[[str, str, str], str]
 
 
 def build_not_requested_notes(*, max_input_chars: int) -> dict[str, Any]:
+    """Build the llm_reviewer_notes artifact for the default no-LLM path."""
     return {
         "artifact_type": "llm_reviewer_notes",
         "tool_name": TOOL_NAME,
@@ -50,9 +56,14 @@ def build_llm_reviewer_notes(
     max_input_chars: int,
     llm_caller: LlmCaller | None = None,
 ) -> dict[str, Any]:
+    """
+    Build optional LLM reviewer notes or a deterministic skipped/failed/rejected
+    artifact. Deterministic artifacts are already available before this runs.
+    """
     if not llm_requested:
         return build_not_requested_notes(max_input_chars=max_input_chars)
 
+    # Model selection is configuration only; do not write API keys or env values to artifacts.
     selected_model = model or os.environ.get("OPENAI_MODEL")
     input_policy = _base_input_policy(max_input_chars)
     if not selected_model:
@@ -63,11 +74,13 @@ def build_llm_reviewer_notes(
             warning="LLM review was requested but no model was supplied.",
         )
 
+    # Deterministic artifacts are already built; the optional LLM receives bounded context only.
     context, input_policy = build_llm_context(review_pack, max_input_chars=max_input_chars)
     caller = llm_caller or call_openai_responses_api
     try:
         raw_text = caller(provider, selected_model, context)
     except ImportError:
+        # Optional dependency failures are recorded as skipped LLM notes, not run failures.
         return _skipped_notes(
             provider=provider,
             model=selected_model,
@@ -75,6 +88,7 @@ def build_llm_reviewer_notes(
             warning="Optional OpenAI dependency is not installed.",
         )
     except Exception as exc:  # noqa: BLE001 - optional LLM failures are artifact warnings.
+        # API call failures do not block deterministic artifacts already written in memory.
         return _failed_notes(
             provider=provider,
             model=selected_model,
@@ -96,16 +110,26 @@ def build_llm_reviewer_notes(
 
 
 def sanitize_llm_error(exc: Exception) -> str:
+    """
+    Convert provider errors into short artifact-safe messages without recording secrets
+    or environment values.
+    """
     message = str(exc).replace("\n", " ").replace("\r", " ")
     api_key = os.environ.get("OPENAI_API_KEY")
     if api_key:
+        # Do not write API keys or environment values into local artifacts.
         message = message.replace(api_key, "[redacted]")
     return f"LLM review call failed: {type(exc).__name__}: {message[:500]}"
 
 
 def call_openai_responses_api(provider: str, model: str, context: str) -> str:
+    """
+    Call the optional OpenAI Responses API through a lazy import so default
+    installations do not require the dependency.
+    """
     if provider != "openai":
         raise ValueError(f"Unsupported LLM provider: {provider}")
+    # Lazy import keeps default non-LLM runs free of optional OpenAI dependency requirements.
     from openai import OpenAI
 
     client = OpenAI()
@@ -127,6 +151,10 @@ def build_notes_from_llm_text(
     model: str,
     input_policy: dict[str, Any],
 ) -> dict[str, Any]:
+    """
+    Parse, validate, and safety-check LLM JSON before including any generated notes in
+    the artifact.
+    """
     try:
         parsed = json.loads(raw_text)
     except json.JSONDecodeError:
@@ -157,6 +185,7 @@ def build_notes_from_llm_text(
 
     unsafe_terms = find_forbidden_terms(json.dumps(parsed, sort_keys=True))
     if unsafe_terms:
+        # Unsafe LLM text is rejected without storing the raw generated content.
         return _rejected_notes(
             provider=provider,
             model=model,
@@ -190,6 +219,10 @@ def build_notes_from_llm_text(
 
 
 def validate_llm_output_shape(value: Any) -> bool:
+    """
+    Validate that optional LLM output follows the expected bounded notes shape before it
+    is written.
+    """
     if not isinstance(value, dict):
         return False
     if set(value) != {"summary", "observations", "suggested_human_questions", "caveats"}:
@@ -206,6 +239,10 @@ def validate_llm_output_shape(value: Any) -> bool:
 
 
 def _valid_observations(value: Any) -> bool:
+    """
+    Private helper for valid observations used to keep deterministic artifact
+    construction small and readable.
+    """
     return isinstance(value, list) and all(
         isinstance(item, dict)
         and set(item) == {"category", "message", "source_finding_ids"}
@@ -217,6 +254,10 @@ def _valid_observations(value: Any) -> bool:
 
 
 def _valid_questions(value: Any) -> bool:
+    """
+    Private helper for valid questions used to keep deterministic artifact construction
+    small and readable.
+    """
     return isinstance(value, list) and all(
         isinstance(item, dict)
         and set(item) == {"category", "question", "source_finding_ids"}
@@ -228,10 +269,18 @@ def _valid_questions(value: Any) -> bool:
 
 
 def _valid_string_list(value: Any) -> bool:
+    """
+    Private helper for valid string list used to keep deterministic artifact
+    construction small and readable.
+    """
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
 def _base_input_policy(max_input_chars: int) -> dict[str, Any]:
+    """
+    Private helper for base input policy used to keep deterministic artifact
+    construction small and readable.
+    """
     return {
         "source": "review_pack",
         "raw_data_rows_included": False,
@@ -243,6 +292,10 @@ def _base_input_policy(max_input_chars: int) -> dict[str, Any]:
 def _skipped_notes(
     *, provider: str, model: str | None, input_policy: dict[str, Any], warning: str
 ) -> dict[str, Any]:
+    """
+    Private helper for skipped notes used to keep deterministic artifact construction
+    small and readable.
+    """
     return {
         "artifact_type": "llm_reviewer_notes",
         "tool_name": TOOL_NAME,
@@ -266,6 +319,10 @@ def _failed_notes(
     warning: str,
     validation: dict[str, bool],
 ) -> dict[str, Any]:
+    """
+    Private helper for failed notes used to keep deterministic artifact construction
+    small and readable.
+    """
     return {
         "artifact_type": "llm_reviewer_notes",
         "tool_name": TOOL_NAME,
@@ -290,6 +347,10 @@ def _rejected_notes(
     warning: str,
     validation: dict[str, bool],
 ) -> dict[str, Any]:
+    """
+    Private helper for rejected notes used to keep deterministic artifact construction
+    small and readable.
+    """
     return {
         "artifact_type": "llm_reviewer_notes",
         "tool_name": TOOL_NAME,
