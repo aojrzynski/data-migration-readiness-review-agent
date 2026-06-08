@@ -78,8 +78,27 @@
     "PR #7 aggregates deterministic review artifacts for human review. It does not assess readiness, approve migration, decide go-live, certify legal/privacy/compliance status, call an LLM, or replace human review.",
     "PR #7 writes a deterministic reviewer summary for human review only. It does not assess readiness, approve migration, decide go-live, certify compliance, or replace human review.",
     "PR #9 adds optional LLM reviewer notes. The default run does not call an LLM. Deterministic artifacts remain authoritative.",
-    "PR #9 creates deterministic review artifacts and an optional supplemental LLM notes artifact. It does not assess readiness, score dimensions, approve migration, decide go-live, certify legal/privacy/compliance status, or replace human review."
+    "This run creates deterministic review artifacts and optional supplemental LLM notes. It does not assess readiness, score dimensions, approve migration, decide go-live, certify legal/privacy/compliance status, or replace human review."
   ],
+  "orchestration": {
+    "mode": "standard",
+    "steps": [
+      "manifest_loaded",
+      "inventory_created",
+      "dataset_profiles_created",
+      "schema_inventory_created",
+      "mapping_review_created",
+      "contract_review_created",
+      "reconciliation_created",
+      "sensitive_field_review_created",
+      "test_evidence_review_created",
+      "evidence_coverage_review_created",
+      "review_pack_created",
+      "reviewer_summary_created",
+      "llm_reviewer_notes_created",
+      "trace_created"
+    ]
+  },
   "orchestrator": "standard",
   "output_directory": "/workspace/data-migration-readiness-review-agent/examples/example_outputs",
   "pack_path": "/workspace/data-migration-readiness-review-agent/examples/migration_pack",
