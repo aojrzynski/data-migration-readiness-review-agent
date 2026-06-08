@@ -1,2 +1,3 @@
-customer_id,email,phone
-1,example@example.com,555-0100
+customer_id,email,phone,date_of_birth
+1,example@example.com,555-0100,1980-01-01
+2,second@example.com,555-0101,

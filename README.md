@@ -11,14 +11,14 @@ The tool reviews migration readiness evidence. It does not approve a migration, 
 - Local-first: inputs and outputs stay on the local machine unless the user chooses otherwise outside this tool.
 - Artifact-driven: review output should be based on explicit supplied files and generated artifacts.
 - Deterministic evidence first: repeatable checks come before any language-model assistance.
-- LLM later, bounded and validated: PR #2 has no LLM dependency and makes no external LLM calls.
+- LLM later, bounded and validated: PR #3 has no LLM dependency and makes no external LLM calls.
 - Human authority remains final: the tool prepares review material, but people make decisions.
 - No cloud services and no hidden external calls.
 - No approval or go-live verdict language.
 
-## What PR #2 currently does
+## What PR #3 currently does
 
-PR #2 adds local manifest intake and migration pack inventory.
+PR #3 adds deterministic CSV dataset profiling and schema inventory on top of local manifest intake and migration pack inventory.
 
 The CLI can:
 
@@ -27,17 +27,21 @@ The CLI can:
 - accept an explicit manifest with `--manifest PATH`
 - validate the manifest's basic shape
 - verify that the manifest and referenced files resolve inside the pack directory
-- inventory files referenced by the manifest without parsing their contents
+- inventory files referenced by the manifest
 - record missing referenced files as `gap_found` entries without crashing the run
 - create an output directory with `--output-dir`
 - record whether `--no-llm` was used
 - record the selected `--orchestrator standard` value
+- profile source and target CSV datasets referenced by the manifest
+- capture row counts, column order, null counts, null rates, inferred types, bounded previews, distinct counts, and duplicate key counts within each file
 - write `migration_inventory.json`
+- write `dataset_profiles.json`
+- write `schema_inventory.json`
 - write an enriched `migration_readiness_trace.json`
 
-PR #2 does not profile datasets, inspect schemas, parse mappings, review contracts, run reconciliation, detect sensitive fields, analyze test evidence, call an LLM, run LangGraph orchestration, or perform a readiness assessment.
+PR #3 does not compare source and target records, validate mappings, review contracts, run reconciliation, detect sensitive fields, analyze test evidence, call an LLM, run LangGraph orchestration, or perform a readiness assessment.
 
-## Run the PR #2 inventory CLI
+## Run the PR #3 profiling CLI
 
 From the repository root:
 
@@ -55,12 +59,14 @@ After running either command, open:
 
 ```text
 outputs/example/migration_inventory.json
+outputs/example/dataset_profiles.json
+outputs/example/schema_inventory.json
 outputs/example/migration_readiness_trace.json
 ```
 
-`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, and inventory counts.
+`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `dataset_profiles.json` contains CSV header details, row counts, column statistics, duplicate key counts, and bounded previews. `schema_inventory.json` lists source and target columns, key column presence, and schema overlap. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, inventory counts, dataset profiling summary, and schema inventory summary.
 
-These files are inventory artifacts only. They are not assessment results or approval artifacts.
+These files are profiling and inventory artifacts only. They are not assessment results or approval artifacts.
 
 ## Manifest behavior
 
@@ -106,7 +112,7 @@ examples/migration_pack/
     └── test_results.csv
 ```
 
-The sample files are intentionally small. PR #2 only checks their paths, presence, file type, size, extension, category, and related dataset IDs where supplied.
+The sample files are intentionally small. PR #3 profiles the CSV files in `data/` and inventories their schemas while keeping mappings, contracts, tests, and evidence as tiny placeholders that are not parsed yet.
 
 ## Development
 
@@ -128,7 +134,8 @@ python -m ruff check .
 
 - PR #1: repository scaffold, project framing, minimal CLI trace artifact
 - PR #2: manifest loading, validation, migration pack inventory, enriched trace artifact
-- Future PR: deterministic dataset and mapping evidence checks
+- PR #3: deterministic CSV dataset profiling and schema inventory artifacts
+- Future PR: deterministic mapping evidence checks
 - Future PR: contract and rule review checks
 - Future PR: reconciliation and test-result summaries
 - Future PR: sensitive-field evidence checks
