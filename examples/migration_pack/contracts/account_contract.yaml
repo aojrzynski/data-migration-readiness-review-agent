@@ -1,2 +1,15 @@
 contract_id: account_contract
-fields: []
+dataset_id: accounts
+fields:
+  - name: account_id
+    type: integer
+    required: true
+  - name: customer_id
+    type: integer
+    required: true
+  - name: status
+    type: text
+    required: true
+  - name: balance
+    type: decimal
+    required: false

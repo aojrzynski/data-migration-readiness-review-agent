@@ -11,14 +11,14 @@ The tool reviews migration readiness evidence. It does not approve a migration, 
 - Local-first: inputs and outputs stay on the local machine unless the user chooses otherwise outside this tool.
 - Artifact-driven: review output should be based on explicit supplied files and generated artifacts.
 - Deterministic evidence first: repeatable checks come before any language-model assistance.
-- LLM later, bounded and validated: PR #3 has no LLM dependency and makes no external LLM calls.
+- LLM later, bounded and validated: PR #4 has no LLM dependency and makes no external LLM calls.
 - Human authority remains final: the tool prepares review material, but people make decisions.
 - No cloud services and no hidden external calls.
 - No approval or go-live verdict language.
 
-## What PR #3 currently does
+## What PR #4 currently does
 
-PR #3 adds deterministic CSV dataset profiling and schema inventory on top of local manifest intake and migration pack inventory.
+PR #4 adds deterministic mapping and contract review artifacts on top of local manifest intake, migration pack inventory, CSV dataset profiling, and schema inventory.
 
 The CLI can:
 
@@ -37,11 +37,15 @@ The CLI can:
 - write `migration_inventory.json`
 - write `dataset_profiles.json`
 - write `schema_inventory.json`
+- review mapping CSV files against source and target schemas
+- write `mapping_review.json`
+- review contract YAML/YML files against target schemas and dataset profiles
+- write `contract_review.json`
 - write an enriched `migration_readiness_trace.json`
 
-PR #3 does not compare source and target records, validate mappings, review contracts, run reconciliation, detect sensitive fields, analyze test evidence, call an LLM, run LangGraph orchestration, or perform a readiness assessment.
+PR #4 does not run reconciliation, compare source and target records, compare mapped field values, detect sensitive fields, analyze test evidence, call an LLM, run LangGraph orchestration, or perform a readiness assessment.
 
-## Run the PR #3 profiling CLI
+## Run the PR #4 local review CLI
 
 From the repository root:
 
@@ -61,12 +65,14 @@ After running either command, open:
 outputs/example/migration_inventory.json
 outputs/example/dataset_profiles.json
 outputs/example/schema_inventory.json
+outputs/example/mapping_review.json
+outputs/example/contract_review.json
 outputs/example/migration_readiness_trace.json
 ```
 
-`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `dataset_profiles.json` contains CSV header details, row counts, column statistics, duplicate key counts, and bounded previews. `schema_inventory.json` lists source and target columns, key column presence, and schema overlap. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, inventory counts, dataset profiling summary, and schema inventory summary.
+`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `dataset_profiles.json` contains CSV header details, row counts, column statistics, duplicate key counts, and bounded previews. `schema_inventory.json` lists source and target columns, key column presence, and schema overlap. `mapping_review.json` checks declared mapping CSV files against source and target schemas, including blank fields, missing field references, duplicate source or target mappings, and unmapped columns. `contract_review.json` checks declared contract YAML/YML files against target schemas and profiled target null/type information. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, inventory counts, dataset profiling summary, schema inventory summary, mapping review summary, and contract review summary.
 
-These files are profiling and inventory artifacts only. They are not assessment results or approval artifacts.
+These files are evidence review artifacts only. They are not assessment results or approval artifacts. The mapping review does not compare mapped field values, and the contract review does not certify compliance or decide readiness.
 
 ## Manifest behavior
 
@@ -112,7 +118,7 @@ examples/migration_pack/
     └── test_results.csv
 ```
 
-The sample files are intentionally small. PR #3 profiles the CSV files in `data/` and inventories their schemas while keeping mappings, contracts, tests, and evidence as tiny placeholders that are not parsed yet.
+The sample files are intentionally small. PR #4 profiles the CSV files in `data/`, inventories their schemas, reviews mapping CSV files in `mappings/`, and reviews contract YAML files in `contracts/`. Tests and evidence remain inventoried but are not analyzed yet.
 
 ## Development
 
@@ -135,8 +141,7 @@ python -m ruff check .
 - PR #1: repository scaffold, project framing, minimal CLI trace artifact
 - PR #2: manifest loading, validation, migration pack inventory, enriched trace artifact
 - PR #3: deterministic CSV dataset profiling and schema inventory artifacts
-- Future PR: deterministic mapping evidence checks
-- Future PR: contract and rule review checks
+- PR #4: deterministic mapping and contract review artifacts
 - Future PR: reconciliation and test-result summaries
 - Future PR: sensitive-field evidence checks
 - Future PR: bounded LLM review over validated artifacts

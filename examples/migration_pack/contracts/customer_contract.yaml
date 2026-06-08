@@ -1,2 +1,15 @@
 contract_id: customer_contract
-fields: []
+dataset_id: customers
+fields:
+  - name: customer_id
+    type: integer
+    required: true
+  - name: email
+    type: text
+    required: true
+  - name: phone
+    type: text
+    required: false
+  - name: date_of_birth
+    type: date
+    required: false

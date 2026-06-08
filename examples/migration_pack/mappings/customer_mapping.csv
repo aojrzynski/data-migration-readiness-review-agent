@@ -1,2 +1,5 @@
 source_field,target_field
 customer_id,customer_id
+email,email
+phone,phone
+date_of_birth,date_of_birth
