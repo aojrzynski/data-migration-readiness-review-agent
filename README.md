@@ -11,41 +11,33 @@ The tool reviews migration readiness evidence. It does not approve a migration, 
 - Local-first: inputs and outputs stay on the local machine unless the user chooses otherwise outside this tool.
 - Artifact-driven: review output should be based on explicit supplied files and generated artifacts.
 - Deterministic evidence first: repeatable checks come before any language-model assistance.
-- LLM later, bounded and validated: PR #1 has no LLM dependency and makes no external LLM calls.
+- LLM later, bounded and validated: PR #2 has no LLM dependency and makes no external LLM calls.
 - Human authority remains final: the tool prepares review material, but people make decisions.
 - No cloud services and no hidden external calls.
 - No approval or go-live verdict language.
 
-## What this tool will eventually do
+## What PR #2 currently does
 
-Later versions are expected to help prepare a review pack from supplied migration materials, including:
-
-- source and target extracts
-- mapping files
-- contract and rule files
-- migration test results
-- reconciliation evidence
-- known risks and open questions
-- cutover and rollback notes
-- acceptance evidence
-
-The intended workflow is to produce clear local artifacts that a human reviewer can inspect.
-
-## What PR #1 currently does
-
-PR #1 only creates the repository scaffold and a minimal CLI.
+PR #2 adds local manifest intake and migration pack inventory.
 
 The CLI can:
 
 - accept a local migration pack directory with `--pack`
+- discover `manifest.yaml`, or `manifest.yml` when `manifest.yaml` is not present
+- accept an explicit manifest with `--manifest PATH`
+- validate the manifest's basic shape
+- verify that the manifest and referenced files resolve inside the pack directory
+- inventory files referenced by the manifest without parsing their contents
+- record missing referenced files as `gap_found` entries without crashing the run
 - create an output directory with `--output-dir`
 - record whether `--no-llm` was used
 - record the selected `--orchestrator standard` value
-- write a simple `migration_readiness_trace.json` artifact
+- write `migration_inventory.json`
+- write an enriched `migration_readiness_trace.json`
 
-PR #1 does not parse the manifest, profile datasets, review mappings, review contracts, reconcile records, detect sensitive fields, call an LLM, run LangGraph orchestration, or perform a readiness assessment.
+PR #2 does not profile datasets, inspect schemas, parse mappings, review contracts, run reconciliation, detect sensitive fields, analyze test evidence, call an LLM, run LangGraph orchestration, or perform a readiness assessment.
 
-## Run the PR #1 scaffold CLI
+## Run the PR #2 inventory CLI
 
 From the repository root:
 
@@ -62,26 +54,59 @@ data-migration-readiness-review --pack examples/migration_pack --output-dir outp
 After running either command, open:
 
 ```text
+outputs/example/migration_inventory.json
 outputs/example/migration_readiness_trace.json
 ```
 
-That file is only a scaffold trace. It is not an assessment result or approval.
+`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, and inventory counts.
 
-## Example migration pack skeleton
+These files are inventory artifacts only. They are not assessment results or approval artifacts.
 
-The repository includes a placeholder pack at `examples/migration_pack/`:
+## Manifest behavior
+
+By default, the CLI looks for a manifest in the migration pack directory:
+
+1. `manifest.yaml`
+2. `manifest.yml`
+
+If neither file exists, the CLI exits non-zero with a clear error. You can override discovery with:
+
+```bash
+python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --manifest manifest.yaml --output-dir outputs/example --no-llm
+```
+
+Relative `--manifest` values are resolved relative to the pack directory. Manifest paths and all referenced file paths must resolve inside the pack directory, including after symlink resolution.
+
+## Example migration pack
+
+The repository includes a tiny sample pack at `examples/migration_pack/`:
 
 ```text
 examples/migration_pack/
 ├── manifest.yaml
 ├── contracts/
+│   ├── account_contract.yaml
+│   └── customer_contract.yaml
 ├── data/
+│   ├── source_accounts.csv
+│   ├── source_customers.csv
+│   ├── target_accounts.csv
+│   └── target_customers.csv
 ├── evidence/
+│   ├── acceptance_notes.md
+│   ├── cutover_plan.md
+│   ├── migration_notes.md
+│   ├── risk_log.md
+│   └── rollback_plan.md
 ├── mappings/
+│   ├── account_mapping.csv
+│   └── customer_mapping.csv
 └── tests/
+    ├── reconciliation_summary.csv
+    └── test_results.csv
 ```
 
-The manifest is present only as a placeholder in PR #1. The CLI does not read or validate it yet.
+The sample files are intentionally small. PR #2 only checks their paths, presence, file type, size, extension, category, and related dataset IDs where supplied.
 
 ## Development
 
@@ -102,7 +127,7 @@ python -m ruff check .
 ## Current roadmap
 
 - PR #1: repository scaffold, project framing, minimal CLI trace artifact
-- Future PR: manifest loading and validation
+- PR #2: manifest loading, validation, migration pack inventory, enriched trace artifact
 - Future PR: deterministic dataset and mapping evidence checks
 - Future PR: contract and rule review checks
 - Future PR: reconciliation and test-result summaries

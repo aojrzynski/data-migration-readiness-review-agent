@@ -1,26 +1,30 @@
 from __future__ import annotations
 
 import argparse
-import json
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 from data_migration_readiness_review_agent import __version__
+from data_migration_readiness_review_agent.artifacts import (
+    INVENTORY_FILE_NAME,
+    TRACE_FILE_NAME,
+    write_json_artifact,
+)
+from data_migration_readiness_review_agent.cli_constants import TOOL_NAME
+from data_migration_readiness_review_agent.inventory import INVENTORY_NOTE, build_inventory
+from data_migration_readiness_review_agent.manifest import ManifestError, load_manifest
 
-TOOL_NAME = "Data Migration Readiness Review Agent"
-TRACE_FILE_NAME = "migration_readiness_trace.json"
-SCAFFOLD_NOTE = (
-    "PR #1 scaffold only: this run does not perform manifest intake, dataset profiling, "
-    "mapping review, contract review, reconciliation, sensitive-field detection, LLM review, "
-    "LangGraph orchestration, or readiness assessment. Human review is still required."
+TRACE_NOTE = (
+    "PR #2 performed manifest and file inventory only. No profiling, reconciliation, LLM "
+    "review, or readiness assessment was performed."
 )
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="data-migration-readiness-review",
-        description="Write a local scaffold trace for a migration review pack.",
+        description="Inventory evidence referenced by a local migration pack manifest.",
     )
     parser.add_argument(
         "--version",
@@ -33,9 +37,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to a local migration pack directory.",
     )
     parser.add_argument(
+        "--manifest",
+        type=Path,
+        help="Optional manifest path. Relative paths are resolved inside the migration pack.",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
-        help="Directory where scaffold artifacts should be written.",
+        help="Directory where inventory artifacts should be written.",
     )
     parser.add_argument(
         "--no-llm",
@@ -46,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--orchestrator",
         choices=["standard"],
         default="standard",
-        help="Orchestrator mode to record. PR #1 only supports 'standard'.",
+        help="Orchestrator mode to record. PR #2 only supports 'standard'.",
     )
     return parser
 
@@ -70,45 +79,55 @@ def build_trace(
     *,
     pack_path: Path,
     output_dir: Path,
+    manifest_path: Path,
     no_llm: bool,
     orchestrator: str,
+    inventory_counts: dict[str, int],
 ) -> dict[str, Any]:
     return {
         "tool_name": TOOL_NAME,
         "package_version": __version__,
         "pack_path": str(pack_path),
         "output_directory": str(output_dir),
+        "manifest_path": str(manifest_path),
         "no_llm": no_llm,
         "orchestrator": orchestrator,
-        "status": "scaffold_trace_written",
-        "note": SCAFFOLD_NOTE,
+        "status": "inventory_created",
+        "artifacts_written": [INVENTORY_FILE_NAME, TRACE_FILE_NAME],
+        "counts": inventory_counts,
+        "note": TRACE_NOTE,
     }
 
 
-def write_trace(trace: dict[str, Any], output_dir: Path) -> Path:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    trace_path = output_dir / TRACE_FILE_NAME
-    trace_path.write_text(json.dumps(trace, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return trace_path
-
-
-def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> Path:
+def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> tuple[Path, Path]:
     pack_path = validate_pack_path(parser, args.pack)
     output_dir = validate_output_dir(args.output_dir)
+    try:
+        loaded_manifest = load_manifest(pack_path, args.manifest)
+        inventory = build_inventory(loaded_manifest)
+    except ManifestError as exc:
+        parser.error(str(exc))
+
+    inventory_path = write_json_artifact(inventory, output_dir, INVENTORY_FILE_NAME)
     trace = build_trace(
         pack_path=pack_path,
         output_dir=output_dir,
+        manifest_path=loaded_manifest.manifest_path,
         no_llm=args.no_llm,
         orchestrator=args.orchestrator,
+        inventory_counts=inventory["counts"],
     )
-    return write_trace(trace, output_dir)
+    trace_path = write_json_artifact(trace, output_dir, TRACE_FILE_NAME)
+    return inventory_path, trace_path
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    trace_path = run(args, parser)
-    print(f"Wrote scaffold trace: {trace_path}")
+    inventory_path, trace_path = run(args, parser)
+    print(f"Wrote migration inventory: {inventory_path}")
+    print(f"Wrote migration trace: {trace_path}")
+    print(INVENTORY_NOTE)
     return 0
 
 
