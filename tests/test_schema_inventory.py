@@ -38,6 +38,7 @@ def test_schema_inventory_includes_columns_overlap_and_not_assessed_status(
 def test_no_llm_or_langgraph_dependencies_are_required() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8").lower()
     assert "langgraph" not in pyproject
-    assert "openai" not in pyproject
+    dependencies_block = pyproject.split("[project.optional-dependencies]", 1)[0]
+    assert "openai" not in dependencies_block
     assert "pandas" not in pyproject
     assert "openpyxl" not in pyproject

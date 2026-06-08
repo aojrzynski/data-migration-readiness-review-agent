@@ -11,6 +11,7 @@ from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     INVENTORY_FILE_NAME,
+    LLM_REVIEWER_NOTES_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
     REVIEW_PACK_FILE_NAME,
@@ -32,6 +33,10 @@ from data_migration_readiness_review_agent.evidence_coverage import (
     build_evidence_coverage_review,
 )
 from data_migration_readiness_review_agent.inventory import INVENTORY_NOTE, build_inventory
+from data_migration_readiness_review_agent.llm_review import (
+    LLM_REVIEW_NOTE,
+    build_llm_reviewer_notes,
+)
 from data_migration_readiness_review_agent.manifest import ManifestError, load_manifest
 from data_migration_readiness_review_agent.mapping_review import (
     MAPPING_REVIEW_NOTE,
@@ -61,13 +66,13 @@ from data_migration_readiness_review_agent.test_evidence import (
 )
 
 TRACE_NOTE = (
-    "PR #7 created deterministic review pack and reviewer summary artifacts. No readiness "
-    "assessment, scoring, LLM review, LangGraph orchestration, legal/privacy/compliance "
-    "certification, or migration approval was performed."
+    "PR #9 creates deterministic review artifacts and an optional supplemental LLM notes "
+    "artifact. It does not assess readiness, score dimensions, approve migration, decide "
+    "go-live, certify legal/privacy/compliance status, or replace human review."
 )
 
 
-ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path]
+ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -99,6 +104,27 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-llm",
         action="store_true",
         help="Record that no LLM review should be used for this run.",
+    )
+    parser.add_argument(
+        "--llm-review",
+        action="store_true",
+        help="Explicitly request optional supplemental LLM reviewer notes.",
+    )
+    parser.add_argument(
+        "--llm-provider",
+        choices=["openai"],
+        default="openai",
+        help="LLM provider to use when --llm-review is provided. PR #9 supports openai only.",
+    )
+    parser.add_argument(
+        "--llm-model",
+        help="Model name used for optional LLM reviewer notes.",
+    )
+    parser.add_argument(
+        "--llm-max-input-chars",
+        type=int,
+        default=20000,
+        help="Maximum serialized review-pack context characters sent to the optional LLM.",
     )
     parser.add_argument(
         "--orchestrator",
@@ -164,6 +190,7 @@ def build_trace(
     evidence_coverage_summary: dict[str, int],
     review_pack_summary: dict[str, int],
     reviewer_summary_path: Path,
+    llm_review_summary: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "tool_name": TOOL_NAME,
@@ -186,6 +213,7 @@ def build_trace(
             EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
             REVIEW_PACK_FILE_NAME,
             REVIEWER_SUMMARY_FILE_NAME,
+            LLM_REVIEWER_NOTES_FILE_NAME,
             TRACE_FILE_NAME,
         ],
         "counts": inventory_counts,
@@ -200,6 +228,7 @@ def build_trace(
         "review_pack_summary": review_pack_summary,
         "reviewer_summary_path": str(reviewer_summary_path),
         "reviewer_summary_written": True,
+        "llm_review_summary": llm_review_summary,
         "notes": [
             INVENTORY_NOTE,
             PROFILE_NOTE,
@@ -212,12 +241,17 @@ def build_trace(
             EVIDENCE_COVERAGE_REVIEW_NOTE,
             REVIEW_PACK_NOTE,
             REVIEWER_SUMMARY_NOTE,
+            LLM_REVIEW_NOTE,
             TRACE_NOTE,
         ],
     }
 
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPaths:
+    if args.no_llm and args.llm_review:
+        parser.error("--no-llm cannot be used with --llm-review")
+    if args.llm_max_input_chars < 1:
+        parser.error("--llm-max-input-chars must be a positive integer")
     pack_path = validate_pack_path(parser, args.pack)
     output_dir = validate_output_dir(args.output_dir)
     try:
@@ -279,6 +313,24 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
     reviewer_summary_path = write_reviewer_summary(
         review_pack, output_dir, REVIEWER_SUMMARY_FILE_NAME
     )
+    llm_reviewer_notes = build_llm_reviewer_notes(
+        review_pack=review_pack,
+        llm_requested=args.llm_review,
+        provider=args.llm_provider,
+        model=args.llm_model,
+        max_input_chars=args.llm_max_input_chars,
+    )
+    llm_reviewer_notes_path = write_json_artifact(
+        llm_reviewer_notes, output_dir, LLM_REVIEWER_NOTES_FILE_NAME
+    )
+    llm_review_summary = {
+        "llm_requested": llm_reviewer_notes["llm_requested"],
+        "llm_performed": llm_reviewer_notes["status"] == "llm_review_completed",
+        "llm_status": llm_reviewer_notes["status"],
+        "provider": llm_reviewer_notes["provider"],
+        "model": llm_reviewer_notes["model"],
+        "input_truncated": llm_reviewer_notes["input_policy"].get("input_truncated", False),
+    }
     trace = build_trace(
         pack_path=pack_path,
         output_dir=output_dir,
@@ -296,6 +348,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         evidence_coverage_summary=evidence_coverage_review["summary"],
         review_pack_summary=review_pack["summary"],
         reviewer_summary_path=reviewer_summary_path,
+        llm_review_summary=llm_review_summary,
     )
     trace_path = write_json_artifact(trace, output_dir, TRACE_FILE_NAME)
     return (
@@ -310,6 +363,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         evidence_coverage_review_path,
         review_pack_path,
         reviewer_summary_path,
+        llm_reviewer_notes_path,
         trace_path,
     )
 
@@ -329,6 +383,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         evidence_coverage_review_path,
         review_pack_path,
         reviewer_summary_path,
+        llm_reviewer_notes_path,
         trace_path,
     ) = run(args, parser)
     print(f"Wrote migration inventory: {inventory_path}")
@@ -342,6 +397,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"Wrote evidence coverage review: {evidence_coverage_review_path}")
     print(f"Wrote review pack: {review_pack_path}")
     print(f"Wrote reviewer summary: {reviewer_summary_path}")
+    print(f"Wrote LLM reviewer notes: {llm_reviewer_notes_path}")
     print(f"Wrote migration trace: {trace_path}")
     print(INVENTORY_NOTE)
     print(PROFILE_NOTE)
@@ -353,6 +409,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(EVIDENCE_COVERAGE_REVIEW_NOTE)
     print(REVIEW_PACK_NOTE)
     print(REVIEWER_SUMMARY_NOTE)
+    print(LLM_REVIEW_NOTE)
     return 0
 
 

@@ -1,0 +1,20 @@
+{
+  "artifact_type": "llm_reviewer_notes",
+  "input_policy": {
+    "max_input_chars": 20000,
+    "raw_data_rows_included": false,
+    "raw_sensitive_values_included": false,
+    "source": "review_pack"
+  },
+  "llm_output": null,
+  "llm_requested": false,
+  "model": null,
+  "notes": [
+    "PR #9 adds optional LLM reviewer notes. The default run does not call an LLM. Deterministic artifacts remain authoritative."
+  ],
+  "package_version": "0.1.0",
+  "provider": null,
+  "status": "llm_review_not_requested",
+  "tool_name": "Data Migration Readiness Review Agent",
+  "warnings": []
+}

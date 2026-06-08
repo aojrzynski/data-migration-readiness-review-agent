@@ -11,6 +11,7 @@ from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     INVENTORY_FILE_NAME,
+    LLM_REVIEWER_NOTES_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
     REVIEW_PACK_FILE_NAME,
@@ -62,6 +63,7 @@ def test_valid_pack_writes_expected_artifacts(tmp_path: Path) -> None:
         EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
         REVIEW_PACK_FILE_NAME,
         REVIEWER_SUMMARY_FILE_NAME,
+        LLM_REVIEWER_NOTES_FILE_NAME,
         TRACE_FILE_NAME,
     ]:
         assert (output_dir / file_name).exists()
@@ -88,6 +90,7 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
         EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
         REVIEW_PACK_FILE_NAME,
         REVIEWER_SUMMARY_FILE_NAME,
+        LLM_REVIEWER_NOTES_FILE_NAME,
         TRACE_FILE_NAME,
     ]
     assert trace["counts"]["referenced_files_present"] == 6
@@ -101,6 +104,14 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
     assert trace["orchestrator"] == "standard"
     assert trace["review_pack_summary"]["datasets"] == 1
     assert trace["reviewer_summary_written"] is True
+    assert trace["llm_review_summary"] == {
+        "llm_requested": False,
+        "llm_performed": False,
+        "llm_status": "llm_review_not_requested",
+        "provider": None,
+        "model": None,
+        "input_truncated": False,
+    }
     assert trace["status"] == "review_summary_artifacts_created"
     assert not any(f'"status": "{term}"' in trace_text for term in FORBIDDEN_REVIEW_TERMS)
 
@@ -108,5 +119,79 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
 def test_forbidden_runtime_dependencies_are_not_added() -> None:
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8").casefold()
 
-    for package_name in ("pandas", "openpyxl", "openai", "langgraph"):
+    dependencies_block = pyproject.split("[project.optional-dependencies]", 1)[0]
+    assert "openai" not in dependencies_block
+    assert "llm = [" in pyproject
+    assert "openai>=1.0.0" in pyproject
+    for package_name in ("pandas", "openpyxl", "langgraph"):
         assert package_name not in pyproject
+
+
+def test_llm_review_and_no_llm_conflict_exits_nonzero(tmp_path: Path) -> None:
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            ["--pack", str(pack_path), "--output-dir", str(output_dir), "--no-llm", "--llm-review"]
+        )
+
+    assert exc_info.value.code == 2
+
+
+def test_llm_review_without_model_is_skipped_without_api_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    assert main(["--pack", str(pack_path), "--output-dir", str(output_dir), "--llm-review"]) == 0
+
+    notes = read_json(output_dir / LLM_REVIEWER_NOTES_FILE_NAME)
+    assert notes["status"] == "llm_review_skipped"
+    assert notes["model"] is None
+    assert "no model was supplied" in notes["warnings"][0]
+
+
+def test_llm_model_and_max_input_chars_are_recorded_when_dependency_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    assert (
+        main(
+            [
+                "--pack",
+                str(pack_path),
+                "--output-dir",
+                str(output_dir),
+                "--llm-review",
+                "--llm-model",
+                "unit-test-model",
+                "--llm-max-input-chars",
+                "123",
+            ]
+        )
+        == 0
+    )
+
+    notes = read_json(output_dir / LLM_REVIEWER_NOTES_FILE_NAME)
+    assert notes["model"] == "unit-test-model"
+    assert notes["input_policy"]["max_input_chars"] == 123
+
+
+def test_openai_model_env_is_used_when_cli_model_absent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENAI_MODEL", "env-test-model")
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    assert main(["--pack", str(pack_path), "--output-dir", str(output_dir), "--llm-review"]) == 0
+
+    notes = read_json(output_dir / LLM_REVIEWER_NOTES_FILE_NAME)
+    assert notes["model"] == "env-test-model"

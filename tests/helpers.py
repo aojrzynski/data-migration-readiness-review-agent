@@ -9,6 +9,7 @@ from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     INVENTORY_FILE_NAME,
+    LLM_REVIEWER_NOTES_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
     REVIEW_PACK_FILE_NAME,
@@ -32,6 +33,7 @@ EXPECTED_ARTIFACT_FILES = {
     EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     REVIEW_PACK_FILE_NAME,
     REVIEWER_SUMMARY_FILE_NAME,
+    LLM_REVIEWER_NOTES_FILE_NAME,
     TRACE_FILE_NAME,
 }
 
@@ -41,6 +43,11 @@ FORBIDDEN_REVIEW_TERMS = {
     "compliant",
     "go_live_approved",
     "go_live_ready",
+    "go live ready",
+    "ready for go-live",
+    "safe to migrate",
+    "migration is ready",
+    "readiness score",
 }
 
 

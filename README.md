@@ -8,11 +8,12 @@ The tool prepares evidence for human review. It does not assess readiness, appro
 
 ## Approach
 
-- **Local-first:** the CLI reads local files and writes local artifacts. It does not make cloud calls.
+- **Local-first:** the default CLI reads local files and writes local artifacts. It does not make cloud calls.
 - **Deterministic-first:** current checks use the Python standard library plus PyYAML and are intended to produce repeatable artifacts from the same pack.
 - **Artifact-driven:** each review step writes a small JSON or Markdown artifact that can be opened directly.
 - **Human authority:** the artifacts organize evidence and findings; people remain responsible for decisions outside the tool.
 - **Bounded output:** previews and samples are limited so generated files stay small and do not dump full datasets.
+- **Optional LLM notes:** supplemental OpenAI-backed reviewer notes are available only when explicitly requested, use bounded `review_pack.json` context, and remain non-authoritative.
 
 ## Quick start
 
@@ -30,7 +31,7 @@ data-migration-readiness-review --pack examples/migration_pack --output-dir outp
 
 Open `outputs/example/reviewer_summary.md` first. It is the best first artifact to open for a human reviewer because it gives the run boundary, summary counts, grouped findings, artifact index, and follow-up checklist.
 
-Committed sample artifacts are available in `examples/example_outputs/` for a quick look without running the command.
+Committed sample artifacts are available in `examples/example_outputs/` for a quick look without running the command. The default command writes `llm_reviewer_notes.json` with `llm_review_not_requested` and does not call an LLM.
 
 ## Current artifact list
 
@@ -45,7 +46,26 @@ Committed sample artifacts are available in `examples/example_outputs/` for a qu
 - `evidence_coverage_review.json` records whether expected evidence types are declared and present.
 - `review_pack.json` aggregates deterministic findings and follow-up checklist items in compact machine-readable form.
 - `reviewer_summary.md` presents the reviewer-facing summary and checklist.
-- `migration_readiness_trace.json` records run settings and artifact summaries.
+- `llm_reviewer_notes.json` records default not-requested status or optional supplemental LLM reviewer notes.
+- `migration_readiness_trace.json` records run settings and artifact summaries, including LLM note status.
+
+## Optional LLM reviewer notes
+
+The default workflow remains deterministic and local-first. It does not call an LLM unless `--llm-review` is provided. To install the optional OpenAI dependency for supplemental reviewer notes, run:
+
+```bash
+python -m pip install -e ".[dev,llm]"
+```
+
+Example optional command:
+
+```bash
+python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/example --llm-review --llm-provider openai --llm-model YOUR_MODEL_NAME
+```
+
+If `--llm-model` is absent, the CLI uses `OPENAI_MODEL` when set. The OpenAI SDK reads `OPENAI_API_KEY` from the environment by its standard behavior; the tool does not write environment values to artifacts. Missing optional dependency, missing model, or API failures are recorded in `llm_reviewer_notes.json` without blocking deterministic artifacts.
+
+LLM output is supplemental only. Deterministic artifacts remain authoritative. The optional layer does not add readiness scoring, approval logic, go-live decisions, legal/privacy/compliance certification, or human replacement. It does not add LangGraph, cloud connectors, remediation workflows, or automatic decisions.
 
 ## Documentation
 
@@ -68,4 +88,4 @@ Committed sample artifacts are available in `examples/example_outputs/` for a qu
 
 ## What the tool does not do
 
-The current workflow does not add readiness scoring, readiness dimension assessment, final go/no-go recommendations, LLM review, LangGraph orchestration, cloud connectors, approval workflows, remediation generation, legal/compliance/privacy certification, or automatic decisions.
+The current workflow does not add readiness scoring, readiness dimension assessment, final go/no-go recommendations, LangGraph orchestration, cloud connectors, approval workflows, remediation generation, legal/compliance/privacy certification, or automatic decisions. Optional LLM reviewer notes are supplemental only and do not change deterministic findings.

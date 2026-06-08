@@ -20,6 +20,10 @@ dependencies = [
 data-migration-readiness-review = "data_migration_readiness_review_agent.cli:main"
 
 [project.optional-dependencies]
+llm = [
+  "openai>=1.0.0",
+]
+
 dev = [
   "pytest>=8.0",
   "ruff>=0.6.0",

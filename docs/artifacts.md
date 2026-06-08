@@ -79,9 +79,21 @@ The CLI writes focused JSON artifacts plus a human-readable reviewer summary. Ea
 - **Important statuses:** This Markdown file does not have a JSON status; its content is generated only after `review_pack.json` is built.
 - **What it does not mean:** It does not approve migration activity, decide go-live, certify compliance, or replace human reviewers.
 
+## `llm_reviewer_notes.json`
+
+- **Purpose:** Records optional supplemental LLM reviewer notes derived from a bounded context built from the in-memory `review_pack.json` object. The default workflow writes this artifact with no external call.
+- **Main sections:** request status, provider and model metadata when supplied, input policy, optional validated LLM output, validation results, warnings, and notes.
+- **Important statuses:**
+  - `llm_review_not_requested`: default status when `--llm-review` is absent.
+  - `llm_review_skipped`: LLM review was requested, but a required condition such as the optional dependency or model name was missing.
+  - `llm_review_completed`: supplemental notes were returned, parsed, schema-checked, and passed safe-language validation.
+  - `llm_review_failed`: the optional call failed or the returned text was invalid JSON or an invalid schema.
+  - `llm_review_rejected`: returned JSON used unsafe positive verdict wording and was excluded.
+- **What it does not mean:** It is supplemental only. It does not change deterministic findings, score readiness, make a go-live decision, certify legal/privacy/security/governance status, or replace human reviewers.
+
 ## `migration_readiness_trace.json`
 
 - **Purpose:** Records run settings and artifact summaries.
-- **Main sections:** tool and version details, pack path, manifest path, output directory, `no_llm`, orchestrator mode, artifacts written, artifact summary counts, notes.
+- **Main sections:** tool and version details, pack path, manifest path, output directory, `no_llm`, orchestrator mode, artifacts written, artifact summary counts, `llm_review_summary`, notes.
 - **Important statuses:** `review_summary_artifacts_created`.
 - **What it does not mean:** It does not prove that artifacts were reviewed by a human or that downstream decisions were made.

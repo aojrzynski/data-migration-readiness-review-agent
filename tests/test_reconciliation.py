@@ -266,5 +266,7 @@ def test_trace_includes_reconciliation_artifact_and_summary(tmp_path: Path) -> N
 def test_no_blocked_runtime_dependencies_are_added() -> None:
     pyproject_text = Path("pyproject.toml").read_text(encoding="utf-8").lower()
 
-    for dependency_name in ("openai", "langgraph", "pandas", "openpyxl"):
+    dependencies_block = pyproject_text.split("[project.optional-dependencies]", 1)[0]
+    assert "openai" not in dependencies_block
+    for dependency_name in ("langgraph", "pandas", "openpyxl"):
         assert dependency_name not in pyproject_text

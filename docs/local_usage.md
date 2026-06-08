@@ -90,3 +90,23 @@ Manifest and referenced paths must stay inside the pack directory. Absolute path
 ### Hatchling or build dependency install issue in restricted environments
 
 Editable installs use the build backend declared in `pyproject.toml`. In restricted environments, installing build dependencies such as `hatchling` may fail. If that happens, use an environment with package access, preinstall required build dependencies from an internal mirror, or run tests with `PYTHONPATH=src` as a local fallback.
+
+## Optional LLM reviewer notes
+
+The default command is deterministic and local-first. It writes `llm_reviewer_notes.json` with `llm_review_not_requested` and does not call an external API.
+
+Install the optional OpenAI dependency only when you intend to request supplemental LLM reviewer notes:
+
+```bash
+python -m pip install -e ".[dev,llm]"
+```
+
+Example optional command:
+
+```bash
+python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/example --llm-review --llm-provider openai --llm-model YOUR_MODEL_NAME
+```
+
+The OpenAI SDK uses `OPENAI_API_KEY` from the environment by its normal behavior. You may set `OPENAI_MODEL` instead of passing `--llm-model`; do not write environment values into migration packs or artifacts. If the optional dependency, model name, or API call is unavailable, deterministic artifacts are still written and `llm_reviewer_notes.json` records a skipped or failed status with a sanitized warning.
+
+The LLM receives a bounded context derived from `review_pack.json`: migration metadata, summary counts, capped findings, capped follow-up items, source artifact names, and boundary instructions. It does not receive raw dataset rows, preview rows, raw mismatch values, raw sensitive values, or API key values. Returned notes must be strict JSON, pass schema validation, and pass safe-language validation before inclusion.

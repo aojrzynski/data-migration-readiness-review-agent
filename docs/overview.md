@@ -25,7 +25,8 @@ The CLI currently performs these local steps:
 11. Check expected evidence-type coverage.
 12. Aggregate findings into `review_pack.json`.
 13. Write `reviewer_summary.md` for human review.
-14. Write `migration_readiness_trace.json` with run settings and artifact summaries.
+14. Write `llm_reviewer_notes.json` with default not-requested status, or optional supplemental notes when explicitly requested.
+15. Write `migration_readiness_trace.json` with run settings and artifact summaries.
 
 ## How the artifacts fit together
 
@@ -35,6 +36,8 @@ The lower-level artifacts keep focused details: inventory, dataset profiles, sch
 
 `reviewer_summary.md` is the best first artifact for a person to open. It summarizes counts, groups findings, lists follow-up checklist items, and names the detailed artifacts to inspect next.
 
+`llm_reviewer_notes.json` is reviewed after deterministic artifacts when optional notes are requested; it is supplemental only.
+
 `migration_readiness_trace.json` records the run configuration and artifact summaries so reviewers can see how the artifacts were produced.
 
 ## Human review remains the authority
@@ -43,4 +46,4 @@ The workflow prepares evidence and deterministic findings. It does not approve m
 
 ## Optional LLM and orchestration later
 
-An optional LLM or LangGraph layer may be added later to help summarize or route already-generated artifacts. If added, it should remain bounded, traceable, and non-authoritative. Deterministic local artifacts should remain the evidence base, and human reviewers should remain responsible for decisions.
+Optional LLM reviewer notes can be requested explicitly. They remain bounded, traceable, and non-authoritative. Deterministic local artifacts remain the evidence base, and human reviewers remain responsible for decisions. LangGraph orchestration is not part of this workflow.
