@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 
 INVENTORY_FILE_NAME = "migration_inventory.json"
+DATASET_PROFILES_FILE_NAME = "dataset_profiles.json"
+SCHEMA_INVENTORY_FILE_NAME = "schema_inventory.json"
 TRACE_FILE_NAME = "migration_readiness_trace.json"
 
 

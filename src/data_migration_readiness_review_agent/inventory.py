@@ -9,7 +9,7 @@ from data_migration_readiness_review_agent.manifest import resolve_inside_pack
 from data_migration_readiness_review_agent.models import FileReference, LoadedManifest
 
 INVENTORY_NOTE = (
-    "PR #2 performs manifest and file inventory only. It does not profile datasets, compare "
+    "PR #3 includes manifest and file inventory before dataset profiling. It does not compare "
     "records, run reconciliation, call an LLM, or assess readiness."
 )
 
