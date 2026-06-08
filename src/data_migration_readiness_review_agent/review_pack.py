@@ -144,10 +144,7 @@ def finding(
 
 
 def inventory_findings(inventory: dict[str, Any]) -> list[dict[str, Any]]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    inventory findings. It records evidence without changing workflow behavior.
-    """
+    """Create review-pack findings for missing manifest-referenced files."""
     return [
         finding(
             finding_id=f"inventory:{gap['gap_id']}",
@@ -164,10 +161,7 @@ def inventory_findings(inventory: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def dataset_profile_findings(dataset_profiles: dict[str, Any]) -> list[dict[str, Any]]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    dataset profile findings. It records evidence without changing workflow behavior.
-    """
+    """Create review-pack findings for dataset profile gaps, missing keys, and duplicate keys."""
     findings: list[dict[str, Any]] = []
     for index, dataset in enumerate(dataset_profiles.get("datasets", [])):
         dataset_id = dataset["dataset_id"]
@@ -243,8 +237,7 @@ def dataset_profile_findings(dataset_profiles: dict[str, Any]) -> list[dict[str,
 
 def mapping_findings(mapping_review: dict[str, Any]) -> list[dict[str, Any]]:
     """
-    Helper used by the review workflow to build deterministic artifact content for
-    mapping findings. It records evidence without changing workflow behavior.
+    Create findings for mapping gaps, schema reference issues, duplicates, and unmapped columns.
     """
     findings: list[dict[str, Any]] = []
     for index, review in enumerate(mapping_review.get("mapping_reviews", [])):
@@ -327,8 +320,7 @@ def _mapping_finding(
 
 def contract_findings(contract_review: dict[str, Any]) -> list[dict[str, Any]]:
     """
-    Helper used by the review workflow to build deterministic artifact content for
-    contract findings. It records evidence without changing workflow behavior.
+    Create findings for missing or failed contracts and contract field check issues.
     """
     findings: list[dict[str, Any]] = []
     for index, review in enumerate(contract_review.get("contract_reviews", [])):
@@ -406,8 +398,7 @@ def _contract_finding(
 
 def reconciliation_findings(reconciliation_results: dict[str, Any]) -> list[dict[str, Any]]:
     """
-    Helper used by the review workflow to build deterministic artifact content for
-    reconciliation findings. It records evidence without changing workflow behavior.
+    Create findings for row-count, key-overlap, and mapped-field reconciliation issues.
     """
     findings: list[dict[str, Any]] = []
     for index, dataset in enumerate(reconciliation_results.get("datasets", [])):
@@ -509,10 +500,7 @@ def _recon(
 
 
 def sensitive_field_findings(sensitive_field_review: dict[str, Any]) -> list[dict[str, Any]]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    sensitive field findings. It records evidence without changing workflow behavior.
-    """
+    """Create review-pack follow-up findings for datasets with sensitive-field indicators."""
     findings: list[dict[str, Any]] = []
     for index, dataset in enumerate(sensitive_field_review.get("datasets", [])):
         dataset_id = dataset["dataset_id"]
@@ -552,8 +540,7 @@ def sensitive_field_findings(sensitive_field_review: dict[str, Any]) -> list[dic
 
 def test_evidence_findings(test_evidence_review: dict[str, Any]) -> list[dict[str, Any]]:
     """
-    Helper used by the review workflow to build deterministic artifact content for test
-    evidence findings. It records evidence without changing workflow behavior.
+    Create findings for missing test evidence, parse failures, and failed or warning-like rows.
     """
     findings: list[dict[str, Any]] = []
     for index, review in enumerate(test_evidence_review.get("test_results", [])):
@@ -615,10 +602,7 @@ def test_evidence_findings(test_evidence_review: dict[str, Any]) -> list[dict[st
 
 
 def evidence_coverage_findings(evidence_coverage_review: dict[str, Any]) -> list[dict[str, Any]]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    evidence coverage findings. It records evidence without changing workflow behavior.
-    """
+    """Create review-pack findings for missing expected evidence and declared evidence gaps."""
     findings: list[dict[str, Any]] = []
     for index, item in enumerate(evidence_coverage_review.get("expected_evidence_types", [])):
         evidence_type = item["evidence_type"]
@@ -681,10 +665,7 @@ def build_follow_up_checklist(findings: list[dict[str, Any]]) -> list[dict[str, 
 
 
 def follow_up_message(category: str, dataset_id: str | None) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    follow up message. It records evidence without changing workflow behavior.
-    """
+    """Return the checklist wording for one finding category and status."""
     scope = f" for {dataset_id}" if dataset_id else ""
     messages = {
         "inventory": "Review missing files or evidence gaps in the manifest references.",

@@ -83,8 +83,7 @@ def review_items(
     expected: bool,
 ) -> dict[str, Any]:
     """
-    Helper used by the review workflow to build deterministic artifact content for
-    review items. It records evidence without changing workflow behavior.
+    Summarize declared evidence files for one type, including present and missing files.
     """
     paths: list[str] = []
     file_details: list[dict[str, Any]] = []
@@ -129,10 +128,7 @@ def review_items(
 
 
 def extension_format(relative_path: str) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    extension format. It records evidence without changing workflow behavior.
-    """
+    """Return the normalized file format label used in review artifacts."""
     suffix = Path(relative_path).suffix.casefold().lstrip(".")
     if suffix in {"md", "markdown"}:
         return "markdown"

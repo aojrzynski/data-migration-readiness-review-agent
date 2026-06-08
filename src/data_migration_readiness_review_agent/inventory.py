@@ -68,10 +68,7 @@ def build_inventory(loaded_manifest: LoadedManifest) -> dict[str, Any]:
 
 
 def build_dataset_entry(dataset: dict[str, Any]) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    dataset entry. It records evidence without changing workflow behavior.
-    """
+    """Copy the manifest dataset fields that belong in migration_inventory.json."""
     entry = {
         "dataset_id": dataset["dataset_id"],
         "source_path": dataset["source_path"],
@@ -85,10 +82,7 @@ def build_dataset_entry(dataset: dict[str, Any]) -> dict[str, Any]:
 
 
 def collect_file_references(manifest: dict[str, Any]) -> list[FileReference]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    collect file references. It records evidence without changing workflow behavior.
-    """
+    """Collect every manifest-declared file path that inventory should check for presence."""
     references: list[FileReference] = []
     for dataset in manifest["datasets"]:
         dataset_id = dataset["dataset_id"]
@@ -150,10 +144,7 @@ def collect_file_references(manifest: dict[str, Any]) -> list[FileReference]:
 
 
 def inspect_file_reference(pack_path: Path, reference: FileReference) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    inspect file reference. It records evidence without changing workflow behavior.
-    """
+    """Resolve one manifest file reference and return local file metadata when it exists."""
     resolved = resolve_inside_pack(
         pack_path, Path(reference.path), description=reference.reference_id
     )
@@ -178,10 +169,7 @@ def inspect_file_reference(pack_path: Path, reference: FileReference) -> dict[st
 
 
 def build_missing_file_gap(file_info: dict[str, Any]) -> dict[str, str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    missing file gap. It records evidence without changing workflow behavior.
-    """
+    """Create the inventory gap entry for one missing manifest-referenced file."""
     return {
         "gap_id": f"missing_file:{file_info['reference_id']}",
         "status": "gap_found",

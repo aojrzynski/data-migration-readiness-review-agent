@@ -117,10 +117,7 @@ def base_mapping_review(
     source_columns: list[str],
     target_columns: list[str],
 ) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for base
-    mapping review. It records evidence without changing workflow behavior.
-    """
+    """Create the default mapping review structure before CSV row checks are added."""
     return {
         "mapping_id": mapping_id,
         "dataset_id": dataset_id,
@@ -234,10 +231,7 @@ def apply_mapping_checks(
 
 
 def lightweight_metadata(row: dict[str, str | None]) -> dict[str, str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    lightweight metadata. It records evidence without changing workflow behavior.
-    """
+    """Keep optional mapping metadata fields that help explain a reviewed mapping row."""
     return {
         column: str(row[column]).strip()
         for column in OPTIONAL_MAPPING_COLUMNS
@@ -246,10 +240,7 @@ def lightweight_metadata(row: dict[str, str | None]) -> dict[str, str]:
 
 
 def unique_in_order(values: list[str]) -> list[str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    unique in order. It records evidence without changing workflow behavior.
-    """
+    """Return unique values in their first-seen order."""
     seen: set[str] = set()
     result: list[str] = []
     for value in values:
@@ -260,19 +251,13 @@ def unique_in_order(values: list[str]) -> list[str]:
 
 
 def unique_issue_values(rows: list[dict[str, Any]], field_name: str, issue: str) -> list[str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    unique issue values. It records evidence without changing workflow behavior.
-    """
+    """Return the unique field values from rows that contain a specific issue."""
     values = [row[field_name] for row in rows if issue in row["issues"] and row[field_name]]
     return unique_in_order(values)
 
 
 def build_mapping_summary(reviews: list[dict[str, Any]]) -> dict[str, int]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    mapping summary. It records evidence without changing workflow behavior.
-    """
+    """Count mapping review outcomes for the mapping_review.json summary."""
     return {
         "mappings_expected": len(reviews),
         "mappings_reviewed": sum(1 for review in reviews if review["status"] == "reviewed"),

@@ -31,10 +31,7 @@ LlmCaller = Callable[[str, str, str], str]
 
 
 def build_not_requested_notes(*, max_input_chars: int) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    not requested notes. It records evidence without changing workflow behavior.
-    """
+    """Build the llm_reviewer_notes artifact for the default no-LLM path."""
     return {
         "artifact_type": "llm_reviewer_notes",
         "tool_name": TOOL_NAME,

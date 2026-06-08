@@ -46,10 +46,7 @@ class ColumnAccumulator:
     observed_types: set[str] = field(default_factory=set)
 
     def add_value(self, value: str) -> None:
-        """
-        Helper used by the review workflow to build deterministic artifact content for
-        add value. It records evidence without changing workflow behavior.
-        """
+        """Add one CSV cell value to aggregate counters without storing the full column."""
         if is_null_value(value):
             self.null_count += 1
             return
@@ -66,8 +63,7 @@ class ColumnAccumulator:
 
     def to_profile(self, row_count: int) -> dict[str, Any]:
         """
-        Helper used by the review workflow to build deterministic artifact content for
-        to profile. It records evidence without changing workflow behavior.
+        Render accumulated column statistics into the dataset_profiles.json shape.
         """
         return {
             "name": self.name,
@@ -219,20 +215,14 @@ def profile_csv_file(pack_path: Path, relative_path: str, key_columns: list[str]
 
 
 def normalize_row_length(row: list[str], expected_length: int) -> list[str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    normalize row length. It records evidence without changing workflow behavior.
-    """
+    """Pad or trim a CSV row so it lines up with the header length."""
     if len(row) < expected_length:
         return [*row, *([""] * (expected_length - len(row)))]
     return row[:expected_length]
 
 
 def build_preview_row(headers: list[str], row: list[str]) -> dict[str, str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    preview row. It records evidence without changing workflow behavior.
-    """
+    """Build a capped preview row so profiles show file shape without copying the whole dataset."""
     # Cap preview columns independently from row caps to keep wide files manageable.
     preview_headers = headers[:PREVIEW_COLUMN_LIMIT]
     preview_values = row[:PREVIEW_COLUMN_LIMIT]
@@ -240,10 +230,7 @@ def build_preview_row(headers: list[str], row: list[str]) -> dict[str, str]:
 
 
 def find_duplicate_headers(headers: list[str]) -> list[str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for find
-    duplicate headers. It records evidence without changing workflow behavior.
-    """
+    """Return duplicate CSV header names while preserving first-seen order."""
     seen: set[str] = set()
     duplicates: list[str] = []
     for header in headers:
@@ -254,19 +241,13 @@ def find_duplicate_headers(headers: list[str]) -> list[str]:
 
 
 def is_null_value(value: str) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for is
-    null value. It records evidence without changing workflow behavior.
-    """
+    """Return True for blank or configured null-like CSV values."""
     # Null tokens are normalized before type inference so blanks do not look like text.
     return value.strip() in NULL_VALUES
 
 
 def detect_value_type(value: str) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    detect value type. It records evidence without changing workflow behavior.
-    """
+    """Infer the primitive type of one non-null CSV cell using simple deterministic rules."""
     lower_value = value.lower()
     # Type inference checks structured types before falling back to text.
     if lower_value in BOOLEAN_VALUES:
@@ -283,10 +264,7 @@ def detect_value_type(value: str) -> str:
 
 
 def infer_column_type(observed_types: set[str]) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for infer
-    column type. It records evidence without changing workflow behavior.
-    """
+    """Collapse observed per-cell types into one column-level inferred type."""
     if not observed_types:
         return "empty"
     if observed_types == {"integer"}:
@@ -299,20 +277,14 @@ def infer_column_type(observed_types: set[str]) -> str:
 
 
 def is_integer(value: str) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for is
-    integer. It records evidence without changing workflow behavior.
-    """
+    """Return True when a CSV cell can be read as an integer."""
     if value.startswith(("+", "-")):
         return value[1:].isdecimal()
     return value.isdecimal()
 
 
 def is_decimal(value: str) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for is
-    decimal. It records evidence without changing workflow behavior.
-    """
+    """Return True when a CSV cell can be read as a decimal number."""
     try:
         Decimal(value)
     except InvalidOperation:
@@ -321,10 +293,7 @@ def is_decimal(value: str) -> bool:
 
 
 def is_date(value: str) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for is
-    date. It records evidence without changing workflow behavior.
-    """
+    """Return True when a CSV cell matches an ISO date."""
     try:
         date.fromisoformat(value)
     except ValueError:
@@ -333,10 +302,7 @@ def is_date(value: str) -> bool:
 
 
 def is_datetime(value: str) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for is
-    datetime. It records evidence without changing workflow behavior.
-    """
+    """Return True when a CSV cell matches an ISO datetime."""
     try:
         datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:

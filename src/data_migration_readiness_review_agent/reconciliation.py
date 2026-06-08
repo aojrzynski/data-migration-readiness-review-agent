@@ -156,10 +156,7 @@ def reconcile_dataset(
 def build_row_count_check(
     manifest_dataset: dict[str, Any], source_profile: dict[str, Any], target_profile: dict[str, Any]
 ) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    row count check. It records evidence without changing workflow behavior.
-    """
+    """Compare profiled source and target row counts using the dataset tolerance."""
     # row_count_tolerance is evidence configuration, not a migration decision threshold.
     tolerance = int(manifest_dataset.get("row_count_tolerance", 0) or 0)
     source_count = (
@@ -209,18 +206,12 @@ def load_csv_rows(pack_path: Path, relative_path: str) -> tuple[list[dict[str, s
 
 
 def normalize_dict_row(row: dict[str, str | None]) -> dict[str, str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    normalize dict row. It records evidence without changing workflow behavior.
-    """
+    """Convert a DictReader row into a plain string dictionary."""
     return {str(key): normalize_value(value or "") for key, value in row.items() if key is not None}
 
 
 def normalize_value(value: str) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    normalize value. It records evidence without changing workflow behavior.
-    """
+    """Normalize line endings before deterministic row comparisons."""
     return value.replace("\r\n", "\n").replace("\r", "\n")
 
 
@@ -272,10 +263,7 @@ def build_key_overlap(
 def skipped_key_overlap(
     missing_source_key_columns: list[str], missing_target_key_columns: list[str]
 ) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    skipped key overlap. It records evidence without changing workflow behavior.
-    """
+    """Build the key-overlap result used when key comparison cannot run."""
     return {
         "status": "skipped",
         "source_key_count": 0,
@@ -349,10 +337,7 @@ def compare_mapped_fields(
 
 
 def skipped_field_comparison(reason: str) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    skipped field comparison. It records evidence without changing workflow behavior.
-    """
+    """Build the mapped-field comparison result used when comparison cannot run."""
     return {
         "status": "skipped",
         "mapped_fields_compared": 0,
@@ -403,10 +388,7 @@ def collect_direct_mappings(
 
 
 def group_mapping_reviews(mapping_review: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for group
-    mapping reviews. It records evidence without changing workflow behavior.
-    """
+    """Group reviewed mapping artifacts by dataset for reconciliation."""
     grouped: dict[str, list[dict[str, Any]]] = {}
     for review in mapping_review.get("mapping_reviews", []):
         dataset_id = review.get("dataset_id")
@@ -416,10 +398,7 @@ def group_mapping_reviews(mapping_review: dict[str, Any]) -> dict[str, list[dict
 
 
 def key_to_sample(key_columns: list[str], key: tuple[str, ...]) -> dict[str, str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for key
-    to sample. It records evidence without changing workflow behavior.
-    """
+    """Convert a key tuple into the sample dictionary shape used in reconciliation output."""
     return dict(zip(key_columns, key, strict=True))
 
 
@@ -429,10 +408,7 @@ def dataset_status(
     key_overlap: dict[str, Any],
     field_comparison: dict[str, Any],
 ) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    dataset status. It records evidence without changing workflow behavior.
-    """
+    """Choose the reconciliation dataset status from warnings and check results."""
     if row_count_check["status"] == "skipped" or key_overlap["status"] == "skipped":
         return "gap_found"
     if warnings or field_comparison["status"] == "warning":
@@ -441,10 +417,7 @@ def dataset_status(
 
 
 def build_reconciliation_summary(datasets: list[dict[str, Any]]) -> dict[str, int]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    reconciliation summary. It records evidence without changing workflow behavior.
-    """
+    """Count reconciliation outcomes and comparison totals across datasets."""
     return {
         "datasets_reconciled": sum(
             1 for dataset in datasets if dataset["status"] in {"reviewed", "warning"}

@@ -51,10 +51,7 @@ def build_test_evidence_review(loaded_manifest: LoadedManifest) -> dict[str, Any
 
 
 def review_test_result(loaded_manifest: LoadedManifest, entry: dict[str, Any]) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    review test result. It records evidence without changing workflow behavior.
-    """
+    """Review one declared test result file and dispatch CSV files to structural parsing."""
     relative_path = entry["path"]
     test_result_id = entry.get("test_result_id", relative_path)
     resolved_path = resolve_inside_pack(
@@ -80,10 +77,7 @@ def review_test_result(loaded_manifest: LoadedManifest, entry: dict[str, Any]) -
 
 
 def extension_format(relative_path: str) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    extension format. It records evidence without changing workflow behavior.
-    """
+    """Return the normalized file format label used in review artifacts."""
     suffix = Path(relative_path).suffix.casefold().lstrip(".")
     if suffix in {"yaml", "yml"}:
         return "yaml"
@@ -156,10 +150,7 @@ def review_csv_test_result(path: Path, base: dict[str, Any]) -> dict[str, Any]:
 
 
 def first_present(headers: list[str], candidates: tuple[str, ...]) -> str | None:
-    """
-    Helper used by the review workflow to build deterministic artifact content for first
-    present. It records evidence without changing workflow behavior.
-    """
+    """Return the first candidate column name that appears in the CSV headers."""
     folded = {header.casefold(): header for header in headers}
     for candidate in candidates:
         if candidate in folded:
@@ -168,10 +159,7 @@ def first_present(headers: list[str], candidates: tuple[str, ...]) -> str | None
 
 
 def normalized_cell(row: dict[str, str | None], column: str | None) -> str:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    normalized cell. It records evidence without changing workflow behavior.
-    """
+    """Return a stripped cell value for a selected column, or an empty string when absent."""
     if column is None:
         return ""
     return (row.get(column) or "").strip()
@@ -184,10 +172,7 @@ def build_row_summary(
     status_column: str | None,
     message_column: str | None,
 ) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    row summary. It records evidence without changing workflow behavior.
-    """
+    """Build the bounded row summary used for failed or warning-like CSV test rows."""
     # Include selected identifying/status columns only, not the full evidence row.
     summary: dict[str, Any] = {"row_number": row_number}
     if id_column is not None:

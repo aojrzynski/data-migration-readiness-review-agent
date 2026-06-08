@@ -166,10 +166,7 @@ def parse_contract_yaml(path: Path) -> Any:
 def base_contract_review(
     contract_id: str, dataset_id: str | None, relative_path: str, target_columns: list[str]
 ) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for base
-    contract review. It records evidence without changing workflow behavior.
-    """
+    """Create the default contract review structure before file-specific checks are added."""
     return {
         "contract_id": contract_id,
         "dataset_id": dataset_id,
@@ -189,9 +186,7 @@ def base_contract_review(
 
 def target_profile_columns_by_name(dataset_profile: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """
-    Helper used by the review workflow to build deterministic artifact content for
-    target profile columns by name. It records evidence without changing workflow
-    behavior.
+    Index target profile columns by name for inferred types and null counts.
     """
     target = dataset_profile.get("target", {})
     return {column["name"]: column for column in target.get("columns", [])}
@@ -348,10 +343,7 @@ def type_check(expected_type: str, inferred_type: str) -> tuple[bool, str]:
 
 
 def build_contract_summary(reviews: list[dict[str, Any]]) -> dict[str, int]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    contract summary. It records evidence without changing workflow behavior.
-    """
+    """Count contract review outcomes for the contract_review.json summary."""
     return {
         "contracts_expected": len(reviews),
         "contracts_reviewed": sum(1 for review in reviews if review["status"] == "reviewed"),

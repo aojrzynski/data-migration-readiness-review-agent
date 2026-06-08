@@ -107,10 +107,7 @@ def build_sensitive_field_review(
 
 
 def group_by_dataset(reviews: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for group
-    by dataset. It records evidence without changing workflow behavior.
-    """
+    """Group review records by dataset_id while ignoring records without a dataset context."""
     grouped: dict[str, list[dict[str, Any]]] = {}
     for review in reviews:
         dataset_id = review.get("dataset_id")
@@ -122,10 +119,7 @@ def group_by_dataset(reviews: list[dict[str, Any]]) -> dict[str, list[dict[str, 
 def review_side(
     schema_side: dict[str, Any], profile_side: dict[str, Any], manifest_hints: list[str]
 ) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    review side. It records evidence without changing workflow behavior.
-    """
+    """Review one source or target schema side for sensitive-field indicator column names."""
     columns = list(schema_side.get("columns", []))
     flagged_columns = [flag_column(column, manifest_hints) for column in columns]
     flagged = [flag for flag in flagged_columns if flag]
@@ -142,10 +136,7 @@ def review_side(
 
 
 def flag_column(column_name: str, manifest_hints: list[str]) -> dict[str, Any] | None:
-    """
-    Helper used by the review workflow to build deterministic artifact content for flag
-    column. It records evidence without changing workflow behavior.
-    """
+    """Return the sensitive-field indicator match for a column name, if one is found."""
     # "Indicator" wording matters: this flags follow-up evidence, not a classification.
     for hint in manifest_hints:
         if names_match(column_name, hint):
@@ -169,10 +160,7 @@ def flag_column(column_name: str, manifest_hints: list[str]) -> dict[str, Any] |
 
 
 def names_match(column_name: str, indicator: str) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for names
-    match. It records evidence without changing workflow behavior.
-    """
+    """Compare a column name and indicator with case-insensitive normalized matching."""
     # Normalize names so case and separators do not hide obvious indicator matches.
     return column_name.casefold() == indicator.casefold() or normalize_name(
         column_name
@@ -265,10 +253,7 @@ def build_summary(datasets: list[dict[str, Any]]) -> dict[str, int]:
 
 
 def unique_in_order(values: list[str]) -> list[str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    unique in order. It records evidence without changing workflow behavior.
-    """
+    """Return unique values in their first-seen order."""
     seen: set[str] = set()
     result: list[str] = []
     for value in values:

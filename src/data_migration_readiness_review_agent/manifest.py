@@ -32,10 +32,7 @@ LIST_SECTIONS = (
 
 
 def is_inside_path(child: Path, parent: Path) -> bool:
-    """
-    Helper used by the review workflow to build deterministic artifact content for is
-    inside path. It records evidence without changing workflow behavior.
-    """
+    """Return True when child is inside parent after both paths have already been resolved."""
     try:
         child.relative_to(parent)
     except ValueError:
@@ -189,10 +186,7 @@ def parse_simple_yaml(text: str) -> dict[str, Any]:
 
 
 def split_key_value(text: str) -> tuple[str, str]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for split
-    key value. It records evidence without changing workflow behavior.
-    """
+    """Split one simple YAML fallback line into a key and value."""
     if ":" not in text:
         raise ValueError(f"expected key/value pair: {text}")
     key, value = text.split(":", 1)
@@ -203,10 +197,7 @@ def split_key_value(text: str) -> tuple[str, str]:
 
 
 def parse_scalar(value: str) -> Any:
-    """
-    Helper used by the review workflow to build deterministic artifact content for parse
-    scalar. It records evidence without changing workflow behavior.
-    """
+    """Parse the small set of scalar values supported by the fallback YAML parser."""
     if value == "":
         return ""
     if value.isdecimal() or (value.startswith("-") and value[1:].isdecimal()):
@@ -217,10 +208,7 @@ def parse_scalar(value: str) -> Any:
 
 
 def require_non_empty_string(value: Any, field_name: str) -> None:
-    """
-    Helper used by the review workflow to build deterministic artifact content for
-    require non empty string. It records evidence without changing workflow behavior.
-    """
+    """Raise ManifestError when a required manifest field is missing or blank."""
     if not isinstance(value, str) or not value.strip():
         raise ManifestError(f"Manifest field {field_name} must be a non-empty string.")
 

@@ -32,10 +32,7 @@ def build_schema_inventory(dataset_profiles: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_schema_dataset_entry(dataset_profile: dict[str, Any]) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    schema dataset entry. It records evidence without changing workflow behavior.
-    """
+    """Build one schema inventory dataset entry from the source and target profile sides."""
     source = build_schema_side(dataset_profile["source"])
     target = build_schema_side(dataset_profile["target"])
     source_columns = source["columns"]
@@ -59,10 +56,7 @@ def build_schema_dataset_entry(dataset_profile: dict[str, Any]) -> dict[str, Any
 
 
 def build_schema_side(profile_side: dict[str, Any]) -> dict[str, Any]:
-    """
-    Helper used by the review workflow to build deterministic artifact content for build
-    schema side. It records evidence without changing workflow behavior.
-    """
+    """Extract the schema fields needed downstream from one profiled source or target side."""
     columns = [column["name"] for column in profile_side["columns"]]
     return {
         "path": profile_side["path"],
