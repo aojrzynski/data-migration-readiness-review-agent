@@ -9,6 +9,7 @@ DATASET_PROFILES_FILE_NAME = "dataset_profiles.json"
 SCHEMA_INVENTORY_FILE_NAME = "schema_inventory.json"
 MAPPING_REVIEW_FILE_NAME = "mapping_review.json"
 CONTRACT_REVIEW_FILE_NAME = "contract_review.json"
+RECONCILIATION_RESULTS_FILE_NAME = "reconciliation_results.json"
 TRACE_FILE_NAME = "migration_readiness_trace.json"
 
 

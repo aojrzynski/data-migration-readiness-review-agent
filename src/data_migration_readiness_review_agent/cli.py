@@ -11,6 +11,7 @@ from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     INVENTORY_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
+    RECONCILIATION_RESULTS_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
     TRACE_FILE_NAME,
     write_json_artifact,
@@ -27,6 +28,10 @@ from data_migration_readiness_review_agent.mapping_review import (
     MAPPING_REVIEW_NOTE,
     build_mapping_review,
 )
+from data_migration_readiness_review_agent.reconciliation import (
+    RECONCILIATION_NOTE,
+    build_reconciliation_results,
+)
 from data_migration_readiness_review_agent.schema_inventory import (
     SCHEMA_INVENTORY_NOTE,
     build_schema_inventory,
@@ -34,13 +39,14 @@ from data_migration_readiness_review_agent.schema_inventory import (
 )
 
 TRACE_NOTE = (
-    "PR #4 created local review artifacts for inventory, dataset profiles, schema inventory, "
-    "mapping review, and contract review. No reconciliation, source/target record comparison, "
-    "LLM review, LangGraph orchestration, or readiness assessment was performed."
+    "PR #5 created local review artifacts for inventory, dataset profiles, schema inventory, "
+    "mapping review, contract review, and reconciliation. No sensitive-field detection, "
+    "test evidence review, LLM review, LangGraph orchestration, migration approval, or "
+    "readiness assessment was performed."
 )
 
 
-ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path]
+ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -77,7 +83,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--orchestrator",
         choices=["standard"],
         default="standard",
-        help="Orchestrator mode to record. PR #4 only supports 'standard'.",
+        help="Orchestrator mode to record. PR #5 only supports 'standard'.",
     )
     return parser
 
@@ -128,6 +134,7 @@ def build_trace(
     schema_inventory_summary: dict[str, int],
     mapping_review_summary: dict[str, int],
     contract_review_summary: dict[str, int],
+    reconciliation_summary: dict[str, int],
 ) -> dict[str, Any]:
     return {
         "tool_name": TOOL_NAME,
@@ -137,13 +144,14 @@ def build_trace(
         "manifest_path": str(manifest_path),
         "no_llm": no_llm,
         "orchestrator": orchestrator,
-        "status": "review_artifacts_created",
+        "status": "reconciliation_artifacts_created",
         "artifacts_written": [
             INVENTORY_FILE_NAME,
             DATASET_PROFILES_FILE_NAME,
             SCHEMA_INVENTORY_FILE_NAME,
             MAPPING_REVIEW_FILE_NAME,
             CONTRACT_REVIEW_FILE_NAME,
+            RECONCILIATION_RESULTS_FILE_NAME,
             TRACE_FILE_NAME,
         ],
         "counts": inventory_counts,
@@ -151,12 +159,14 @@ def build_trace(
         "schema_inventory_summary": schema_inventory_summary,
         "mapping_review_summary": mapping_review_summary,
         "contract_review_summary": contract_review_summary,
+        "reconciliation_summary": reconciliation_summary,
         "notes": [
             INVENTORY_NOTE,
             PROFILE_NOTE,
             SCHEMA_INVENTORY_NOTE,
             MAPPING_REVIEW_NOTE,
             CONTRACT_REVIEW_NOTE,
+            RECONCILIATION_NOTE,
             TRACE_NOTE,
         ],
     }
@@ -172,6 +182,9 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         schema_inventory = build_schema_inventory(dataset_profiles)
         mapping_review = build_mapping_review(loaded_manifest, schema_inventory)
         contract_review = build_contract_review(loaded_manifest, dataset_profiles, schema_inventory)
+        reconciliation_results = build_reconciliation_results(
+            loaded_manifest, dataset_profiles, schema_inventory, mapping_review
+        )
     except ManifestError as exc:
         parser.error(str(exc))
 
@@ -188,6 +201,9 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
     contract_review_path = write_json_artifact(
         contract_review, output_dir, CONTRACT_REVIEW_FILE_NAME
     )
+    reconciliation_results_path = write_json_artifact(
+        reconciliation_results, output_dir, RECONCILIATION_RESULTS_FILE_NAME
+    )
     trace = build_trace(
         pack_path=pack_path,
         output_dir=output_dir,
@@ -199,6 +215,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         schema_inventory_summary=build_schema_summary(schema_inventory),
         mapping_review_summary=mapping_review["summary"],
         contract_review_summary=contract_review["summary"],
+        reconciliation_summary=reconciliation_results["summary"],
     )
     trace_path = write_json_artifact(trace, output_dir, TRACE_FILE_NAME)
     return (
@@ -207,6 +224,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         schema_inventory_path,
         mapping_review_path,
         contract_review_path,
+        reconciliation_results_path,
         trace_path,
     )
 
@@ -220,6 +238,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         schema_inventory_path,
         mapping_review_path,
         contract_review_path,
+        reconciliation_results_path,
         trace_path,
     ) = run(args, parser)
     print(f"Wrote migration inventory: {inventory_path}")
@@ -227,11 +246,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"Wrote schema inventory: {schema_inventory_path}")
     print(f"Wrote mapping review: {mapping_review_path}")
     print(f"Wrote contract review: {contract_review_path}")
+    print(f"Wrote reconciliation results: {reconciliation_results_path}")
     print(f"Wrote migration trace: {trace_path}")
     print(INVENTORY_NOTE)
     print(PROFILE_NOTE)
     print(MAPPING_REVIEW_NOTE)
     print(CONTRACT_REVIEW_NOTE)
+    print(RECONCILIATION_NOTE)
     return 0
 
 

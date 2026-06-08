@@ -12,6 +12,7 @@ from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     INVENTORY_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
+    RECONCILIATION_RESULTS_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
     TRACE_FILE_NAME,
 )
@@ -39,6 +40,7 @@ def test_valid_pack_writes_expected_artifacts(tmp_path: Path) -> None:
         SCHEMA_INVENTORY_FILE_NAME,
         MAPPING_REVIEW_FILE_NAME,
         CONTRACT_REVIEW_FILE_NAME,
+        RECONCILIATION_RESULTS_FILE_NAME,
         TRACE_FILE_NAME,
     ]:
         assert (output_dir / file_name).exists()
@@ -59,12 +61,14 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
         SCHEMA_INVENTORY_FILE_NAME,
         MAPPING_REVIEW_FILE_NAME,
         CONTRACT_REVIEW_FILE_NAME,
+        RECONCILIATION_RESULTS_FILE_NAME,
         TRACE_FILE_NAME,
     ]
     assert trace["counts"]["referenced_files_present"] == 6
+    assert trace["reconciliation_summary"]["datasets_reconciled"] == 1
     assert trace["mapping_review_summary"]["mappings_reviewed"] == 1
     assert trace["contract_review_summary"]["contracts_reviewed"] == 1
     assert trace["no_llm"] is True
     assert trace["orchestrator"] == "standard"
-    assert trace["status"] == "review_artifacts_created"
+    assert trace["status"] == "reconciliation_artifacts_created"
     assert not any(f'"status": "{term}"' in trace_text for term in FORBIDDEN_REVIEW_TERMS)
