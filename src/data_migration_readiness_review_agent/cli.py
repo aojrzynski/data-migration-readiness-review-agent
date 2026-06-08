@@ -104,7 +104,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--orchestrator",
         choices=["standard"],
         default="standard",
-        help="Orchestrator mode to record. PR #6 only supports 'standard'.",
+        help=(
+            "Orchestrator mode to record. The deterministic local workflow "
+            "currently supports 'standard'."
+        ),
     )
     return parser
 

@@ -3,12 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from conftest import make_pack, read_json, run_cli
 from data_migration_readiness_review_agent.artifacts import (
     DATASET_PROFILES_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
     TRACE_FILE_NAME,
 )
+from helpers import make_pack, read_json, run_cli
 
 
 def column_by_name(profile_side: dict[str, Any], name: str) -> dict[str, Any]:

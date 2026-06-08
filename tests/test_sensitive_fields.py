@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from conftest import FORBIDDEN_REVIEW_TERMS, make_pack, manifest_data, read_json, run_cli
 from data_migration_readiness_review_agent.artifacts import SENSITIVE_FIELD_REVIEW_FILE_NAME
+from helpers import FORBIDDEN_REVIEW_TERMS, make_pack, manifest_data, read_json, run_cli
 
 
 def test_sensitive_field_review_is_written_and_flags_expected_columns(tmp_path: Path) -> None:

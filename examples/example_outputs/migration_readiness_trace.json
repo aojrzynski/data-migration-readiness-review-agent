@@ -1,0 +1,125 @@
+{
+  "artifacts_written": [
+    "migration_inventory.json",
+    "dataset_profiles.json",
+    "schema_inventory.json",
+    "mapping_review.json",
+    "contract_review.json",
+    "reconciliation_results.json",
+    "sensitive_field_review.json",
+    "test_evidence_review.json",
+    "evidence_coverage_review.json",
+    "review_pack.json",
+    "reviewer_summary.md",
+    "migration_readiness_trace.json"
+  ],
+  "contract_review_summary": {
+    "contract_fields_reviewed": 8,
+    "contract_files_failed_checks": 0,
+    "contract_files_with_gaps": 0,
+    "contracts_expected": 2,
+    "contracts_reviewed": 2,
+    "missing_required_target_fields": 0,
+    "required_target_fields_with_nulls": 0,
+    "type_mismatch_warnings": 0
+  },
+  "counts": {
+    "datasets": 2,
+    "referenced_files": 15,
+    "referenced_files_missing": 0,
+    "referenced_files_present": 15
+  },
+  "dataset_profile_summary": {
+    "dataset_files_expected": 4,
+    "dataset_files_profiled": 4,
+    "dataset_files_with_gaps": 0,
+    "datasets_profiled": 2
+  },
+  "evidence_coverage_summary": {
+    "evidence_files_missing": 0,
+    "evidence_files_present": 5,
+    "evidence_types_missing": 0,
+    "evidence_types_present": 5,
+    "evidence_types_with_gaps": 0,
+    "expected_evidence_types": 5
+  },
+  "manifest_path": "/workspace/data-migration-readiness-review-agent/examples/migration_pack/manifest.yaml",
+  "mapping_review_summary": {
+    "mapping_files_failed_checks": 0,
+    "mapping_files_with_gaps": 0,
+    "mapping_rows_reviewed": 8,
+    "mapping_rows_with_issues": 0,
+    "mappings_expected": 2,
+    "mappings_reviewed": 2,
+    "missing_source_field_references": 0,
+    "missing_target_field_references": 0,
+    "unmapped_target_columns": 0
+  },
+  "no_llm": true,
+  "notes": [
+    "PR #3 includes manifest and file inventory before dataset profiling. It does not compare records, run reconciliation, call an LLM, or assess readiness.",
+    "PR #3 profiles CSV datasets only. It does not compare mapped fields, run reconciliation, call an LLM, or assess readiness. Distinct counts are capped at 1000 stored values per column.",
+    "PR #3 inventories source and target schemas. It does not validate mappings or contracts and does not assess readiness.",
+    "PR #4 reviews mapping files against source and target schemas only. It does not compare source and target records, run reconciliation, call an LLM, or assess readiness.",
+    "PR #4 reviews contract files against profiled target schemas only. It does not run reconciliation, call an LLM, or assess readiness.",
+    "PR #5 performs deterministic reconciliation checks only. It does not assess migration launch suitability, authorize migration activity, call an LLM, or apply transformations.",
+    "PR #6 reviews sensitive-field indicators only. It does not classify legal/privacy status or decide whether data handling is acceptable.",
+    "PR #6 reviews supplied test evidence structure only. It records supplied files without deciding launch suitability.",
+    "PR #6 reviews evidence coverage only. It records declared evidence types and file presence without judging document quality.",
+    "PR #7 aggregates deterministic review artifacts for human review. It does not assess readiness, approve migration, decide go-live, certify legal/privacy/compliance status, call an LLM, or replace human review.",
+    "PR #7 writes a deterministic reviewer summary for human review only. It does not assess readiness, approve migration, decide go-live, certify compliance, or replace human review.",
+    "PR #7 created deterministic review pack and reviewer summary artifacts. No readiness assessment, scoring, LLM review, LangGraph orchestration, legal/privacy/compliance certification, or migration approval was performed."
+  ],
+  "orchestrator": "standard",
+  "output_directory": "/workspace/data-migration-readiness-review-agent/examples/example_outputs",
+  "pack_path": "/workspace/data-migration-readiness-review-agent/examples/migration_pack",
+  "package_version": "0.1.0",
+  "reconciliation_summary": {
+    "datasets_reconciled": 2,
+    "datasets_with_gaps": 0,
+    "mismatched_cells": 0,
+    "missing_source_keys_in_target": 0,
+    "row_count_failures": 0,
+    "unexpected_target_keys": 0
+  },
+  "review_pack_summary": {
+    "contract_files_with_gaps": 0,
+    "dataset_files_with_gaps": 0,
+    "datasets": 2,
+    "datasets_with_sensitive_indicators": 1,
+    "evidence_types_missing": 0,
+    "evidence_types_with_gaps": 0,
+    "failed_like_test_rows": 0,
+    "follow_up_items": 1,
+    "mapping_files_with_gaps": 0,
+    "mismatched_cells": 0,
+    "missing_source_keys_in_target": 0,
+    "referenced_files_missing": 0,
+    "row_count_failures": 0,
+    "unexpected_target_keys": 0,
+    "warning_like_test_rows": 0
+  },
+  "reviewer_summary_path": "/workspace/data-migration-readiness-review-agent/examples/example_outputs/reviewer_summary.md",
+  "reviewer_summary_written": true,
+  "schema_inventory_summary": {
+    "schemas_inventoried": 2,
+    "schemas_with_missing_key_columns": 0
+  },
+  "sensitive_field_summary": {
+    "datasets_reviewed": 2,
+    "datasets_with_sensitive_indicators": 1,
+    "files_with_gaps": 0,
+    "flagged_source_columns": 3,
+    "flagged_target_columns": 3
+  },
+  "status": "review_summary_artifacts_created",
+  "test_evidence_summary": {
+    "csv_test_rows_reviewed": 2,
+    "failed_like_rows": 0,
+    "test_result_files_with_gaps": 0,
+    "test_results_expected": 2,
+    "test_results_reviewed": 2,
+    "warning_like_rows": 0
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}

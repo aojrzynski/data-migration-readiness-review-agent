@@ -1,0 +1,160 @@
+{
+  "artifact_type": "mapping_review",
+  "mapping_reviews": [
+    {
+      "dataset_id": "customers",
+      "duplicate_source_mappings": [],
+      "duplicate_target_mappings": [],
+      "mapped_source_fields": [
+        "customer_id",
+        "email",
+        "phone",
+        "date_of_birth"
+      ],
+      "mapped_target_fields": [
+        "customer_id",
+        "email",
+        "phone",
+        "date_of_birth"
+      ],
+      "mapping_id": "customer_mapping",
+      "mapping_row_count": 4,
+      "mapping_rows_omitted": 0,
+      "mapping_rows_reviewed": 4,
+      "missing_required_columns": [],
+      "missing_source_field_references": [],
+      "missing_target_field_references": [],
+      "path": "mappings/customer_mapping.csv",
+      "required_columns_present": true,
+      "reviewed_mapping_rows": [
+        {
+          "issues": [],
+          "row_number": 2,
+          "source_field": "customer_id",
+          "target_field": "customer_id"
+        },
+        {
+          "issues": [],
+          "row_number": 3,
+          "source_field": "email",
+          "target_field": "email"
+        },
+        {
+          "issues": [],
+          "row_number": 4,
+          "source_field": "phone",
+          "target_field": "phone"
+        },
+        {
+          "issues": [],
+          "row_number": 5,
+          "source_field": "date_of_birth",
+          "target_field": "date_of_birth"
+        }
+      ],
+      "rows_with_issues": [],
+      "source_columns": [
+        "customer_id",
+        "email",
+        "phone",
+        "date_of_birth"
+      ],
+      "status": "reviewed",
+      "target_columns": [
+        "customer_id",
+        "email",
+        "phone",
+        "date_of_birth"
+      ],
+      "unmapped_source_columns": [],
+      "unmapped_target_columns": [],
+      "warnings": []
+    },
+    {
+      "dataset_id": "accounts",
+      "duplicate_source_mappings": [],
+      "duplicate_target_mappings": [],
+      "mapped_source_fields": [
+        "account_id",
+        "customer_id",
+        "status",
+        "balance"
+      ],
+      "mapped_target_fields": [
+        "account_id",
+        "customer_id",
+        "status",
+        "balance"
+      ],
+      "mapping_id": "account_mapping",
+      "mapping_row_count": 4,
+      "mapping_rows_omitted": 0,
+      "mapping_rows_reviewed": 4,
+      "missing_required_columns": [],
+      "missing_source_field_references": [],
+      "missing_target_field_references": [],
+      "path": "mappings/account_mapping.csv",
+      "required_columns_present": true,
+      "reviewed_mapping_rows": [
+        {
+          "issues": [],
+          "row_number": 2,
+          "source_field": "account_id",
+          "target_field": "account_id"
+        },
+        {
+          "issues": [],
+          "row_number": 3,
+          "source_field": "customer_id",
+          "target_field": "customer_id"
+        },
+        {
+          "issues": [],
+          "row_number": 4,
+          "source_field": "status",
+          "target_field": "status"
+        },
+        {
+          "issues": [],
+          "row_number": 5,
+          "source_field": "balance",
+          "target_field": "balance"
+        }
+      ],
+      "rows_with_issues": [],
+      "source_columns": [
+        "account_id",
+        "customer_id",
+        "status",
+        "balance"
+      ],
+      "status": "reviewed",
+      "target_columns": [
+        "account_id",
+        "customer_id",
+        "status",
+        "balance"
+      ],
+      "unmapped_source_columns": [],
+      "unmapped_target_columns": [],
+      "warnings": []
+    }
+  ],
+  "notes": [
+    "PR #4 reviews mapping files against source and target schemas only. It does not compare source and target records, run reconciliation, call an LLM, or assess readiness."
+  ],
+  "package_version": "0.1.0",
+  "status": "mapping_review_created",
+  "summary": {
+    "mapping_files_failed_checks": 0,
+    "mapping_files_with_gaps": 0,
+    "mapping_rows_reviewed": 8,
+    "mapping_rows_with_issues": 0,
+    "mappings_expected": 2,
+    "mappings_reviewed": 2,
+    "missing_source_field_references": 0,
+    "missing_target_field_references": 0,
+    "unmapped_target_columns": 0
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}

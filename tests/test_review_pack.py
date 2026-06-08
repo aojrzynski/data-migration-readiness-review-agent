@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from conftest import (
+from data_migration_readiness_review_agent.artifacts import REVIEW_PACK_FILE_NAME
+from data_migration_readiness_review_agent.review_pack import SOURCE_ARTIFACTS
+from data_migration_readiness_review_agent.safe_language import find_forbidden_terms
+from helpers import (
     make_pack,
     manifest_data,
     read_json,
@@ -11,9 +14,6 @@ from conftest import (
     write_manifest,
     write_referenced_files,
 )
-from data_migration_readiness_review_agent.artifacts import REVIEW_PACK_FILE_NAME
-from data_migration_readiness_review_agent.review_pack import SOURCE_ARTIFACTS
-from data_migration_readiness_review_agent.safe_language import find_forbidden_terms
 
 
 def load_review_pack(tmp_path: Path, pack_path: Path) -> dict[str, object]:

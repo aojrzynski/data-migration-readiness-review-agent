@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from conftest import FORBIDDEN_REVIEW_TERMS, make_pack, read_json, run_cli
 from data_migration_readiness_review_agent import __version__
 from data_migration_readiness_review_agent.artifacts import (
     CONTRACT_REVIEW_FILE_NAME,
@@ -22,6 +21,7 @@ from data_migration_readiness_review_agent.artifacts import (
     TRACE_FILE_NAME,
 )
 from data_migration_readiness_review_agent.cli import main
+from helpers import FORBIDDEN_REVIEW_TERMS, make_pack, read_json, run_cli
 
 
 def test_cli_version_works(capsys: pytest.CaptureFixture[str]) -> None:
@@ -30,6 +30,17 @@ def test_cli_version_works(capsys: pytest.CaptureFixture[str]) -> None:
 
     assert exc_info.value.code == 0
     assert __version__ in capsys.readouterr().out
+
+
+def test_orchestrator_help_text_is_pr_agnostic(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        main(["--help"])
+
+    help_text = capsys.readouterr().out
+    assert exc_info.value.code == 0
+    assert "PR #6" not in help_text
+    assert "The deterministic local" in help_text
+    assert "workflow currently supports 'standard'." in help_text
 
 
 def test_valid_pack_writes_expected_artifacts(tmp_path: Path) -> None:

@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from conftest import make_pack, read_json, run_cli
 from data_migration_readiness_review_agent.artifacts import SCHEMA_INVENTORY_FILE_NAME
+from helpers import make_pack, read_json, run_cli
 
 
 def test_schema_inventory_includes_columns_overlap_and_not_assessed_status(

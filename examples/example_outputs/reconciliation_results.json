@@ -1,0 +1,97 @@
+{
+  "artifact_type": "reconciliation_results",
+  "datasets": [
+    {
+      "dataset_id": "customers",
+      "duplicate_key_counts": {
+        "source_duplicate_key_count": 0,
+        "target_duplicate_key_count": 0
+      },
+      "field_comparison": {
+        "compared_cell_count": 8,
+        "mapped_fields_compared": 4,
+        "matched_cell_count": 8,
+        "mismatch_samples": [],
+        "mismatched_cell_count": 0,
+        "skipped_mapping_count": 0,
+        "skipped_mappings": [],
+        "status": "passed_check"
+      },
+      "key_columns": [
+        "customer_id"
+      ],
+      "key_overlap": {
+        "missing_source_key_samples": [],
+        "missing_source_keys_in_target_count": 0,
+        "shared_key_count": 2,
+        "source_key_count": 2,
+        "status": "passed_check",
+        "target_key_count": 2,
+        "unexpected_target_key_samples": [],
+        "unexpected_target_keys_count": 0
+      },
+      "row_count_check": {
+        "difference": 0,
+        "source_row_count": 2,
+        "status": "passed_check",
+        "target_row_count": 2,
+        "tolerance": 0
+      },
+      "status": "reviewed",
+      "warnings": []
+    },
+    {
+      "dataset_id": "accounts",
+      "duplicate_key_counts": {
+        "source_duplicate_key_count": 0,
+        "target_duplicate_key_count": 0
+      },
+      "field_comparison": {
+        "compared_cell_count": 8,
+        "mapped_fields_compared": 4,
+        "matched_cell_count": 8,
+        "mismatch_samples": [],
+        "mismatched_cell_count": 0,
+        "skipped_mapping_count": 0,
+        "skipped_mappings": [],
+        "status": "passed_check"
+      },
+      "key_columns": [
+        "account_id"
+      ],
+      "key_overlap": {
+        "missing_source_key_samples": [],
+        "missing_source_keys_in_target_count": 0,
+        "shared_key_count": 2,
+        "source_key_count": 2,
+        "status": "passed_check",
+        "target_key_count": 2,
+        "unexpected_target_key_samples": [],
+        "unexpected_target_keys_count": 0
+      },
+      "row_count_check": {
+        "difference": 0,
+        "source_row_count": 2,
+        "status": "passed_check",
+        "target_row_count": 2,
+        "tolerance": 0
+      },
+      "status": "reviewed",
+      "warnings": []
+    }
+  ],
+  "notes": [
+    "PR #5 performs deterministic reconciliation checks only. It does not assess migration launch suitability, authorize migration activity, call an LLM, or apply transformations."
+  ],
+  "package_version": "0.1.0",
+  "status": "reconciliation_created",
+  "summary": {
+    "datasets_reconciled": 2,
+    "datasets_with_gaps": 0,
+    "mismatched_cells": 0,
+    "missing_source_keys_in_target": 0,
+    "row_count_failures": 0,
+    "unexpected_target_keys": 0
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}

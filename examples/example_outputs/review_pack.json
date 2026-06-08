@@ -1,0 +1,154 @@
+{
+  "artifact_type": "review_pack",
+  "findings": [
+    {
+      "category": "sensitive_field_indicators",
+      "dataset_id": "customers",
+      "evidence": {
+        "artifact": "sensitive_field_review.json",
+        "path": "datasets[0]"
+      },
+      "finding_id": "sensitive_field_indicators:customers:columns",
+      "human_follow_up": "Confirm handling expectations for the indicated fields.",
+      "message": "Sensitive-field indicators were found by column name.",
+      "severity": "medium",
+      "source_artifact": "sensitive_field_review.json",
+      "status": "warning"
+    }
+  ],
+  "follow_up_checklist": [
+    {
+      "category": "sensitive_field_indicators",
+      "dataset_id": "customers",
+      "item_id": "human:sensitive_field_indicators:customers",
+      "message": "Confirm handling expectations for sensitive-field indicators for customers.",
+      "source_artifact": "sensitive_field_review.json",
+      "status": "follow_up_needed"
+    }
+  ],
+  "migration": {
+    "description": "Example customer and account migration pack for local review.",
+    "name": "customer_account_migration",
+    "owner": "Example Data Migration Team",
+    "source_system": "legacy_crm",
+    "target_system": "new_customer_platform"
+  },
+  "notes": [
+    "PR #7 aggregates deterministic review artifacts for human review. It does not assess readiness, approve migration, decide go-live, certify legal/privacy/compliance status, call an LLM, or replace human review."
+  ],
+  "package_version": "0.1.0",
+  "sections": [
+    {
+      "finding_ids": [],
+      "section_id": "inventory",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Migration pack inventory"
+    },
+    {
+      "finding_ids": [],
+      "section_id": "dataset_profiling",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Dataset profiling"
+    },
+    {
+      "finding_ids": [],
+      "section_id": "mapping",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Mapping"
+    },
+    {
+      "finding_ids": [],
+      "section_id": "contracts",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Contracts"
+    },
+    {
+      "finding_ids": [],
+      "section_id": "reconciliation",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Reconciliation"
+    },
+    {
+      "finding_ids": [
+        "sensitive_field_indicators:customers:columns"
+      ],
+      "section_id": "sensitive_field_indicators",
+      "status": "reviewed",
+      "summary": {
+        "findings": 1,
+        "follow_up_needed": 1
+      },
+      "title": "Sensitive-field indicators"
+    },
+    {
+      "finding_ids": [],
+      "section_id": "test_evidence",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Test evidence"
+    },
+    {
+      "finding_ids": [],
+      "section_id": "evidence_coverage",
+      "status": "reviewed",
+      "summary": {
+        "findings": 0,
+        "follow_up_needed": 0
+      },
+      "title": "Evidence coverage"
+    }
+  ],
+  "source_artifacts": [
+    "migration_inventory.json",
+    "dataset_profiles.json",
+    "schema_inventory.json",
+    "mapping_review.json",
+    "contract_review.json",
+    "reconciliation_results.json",
+    "sensitive_field_review.json",
+    "test_evidence_review.json",
+    "evidence_coverage_review.json"
+  ],
+  "status": "review_pack_created",
+  "summary": {
+    "contract_files_with_gaps": 0,
+    "dataset_files_with_gaps": 0,
+    "datasets": 2,
+    "datasets_with_sensitive_indicators": 1,
+    "evidence_types_missing": 0,
+    "evidence_types_with_gaps": 0,
+    "failed_like_test_rows": 0,
+    "follow_up_items": 1,
+    "mapping_files_with_gaps": 0,
+    "mismatched_cells": 0,
+    "missing_source_keys_in_target": 0,
+    "referenced_files_missing": 0,
+    "row_count_failures": 0,
+    "unexpected_target_keys": 0,
+    "warning_like_test_rows": 0
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}
