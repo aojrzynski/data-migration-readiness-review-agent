@@ -7,10 +7,11 @@ from typing import Any
 from data_migration_readiness_review_agent.cli import main
 
 FORBIDDEN_REVIEW_TERMS = {
-    "ready",
     "approved",
     "certified",
+    "compliant",
     "go_live_approved",
+    "go_live_ready",
 }
 
 

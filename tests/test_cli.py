@@ -14,6 +14,8 @@ from data_migration_readiness_review_agent.artifacts import (
     INVENTORY_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
+    REVIEW_PACK_FILE_NAME,
+    REVIEWER_SUMMARY_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
     SENSITIVE_FIELD_REVIEW_FILE_NAME,
     TEST_EVIDENCE_REVIEW_FILE_NAME,
@@ -47,6 +49,8 @@ def test_valid_pack_writes_expected_artifacts(tmp_path: Path) -> None:
         SENSITIVE_FIELD_REVIEW_FILE_NAME,
         TEST_EVIDENCE_REVIEW_FILE_NAME,
         EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
+        REVIEW_PACK_FILE_NAME,
+        REVIEWER_SUMMARY_FILE_NAME,
         TRACE_FILE_NAME,
     ]:
         assert (output_dir / file_name).exists()
@@ -71,6 +75,8 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
         SENSITIVE_FIELD_REVIEW_FILE_NAME,
         TEST_EVIDENCE_REVIEW_FILE_NAME,
         EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
+        REVIEW_PACK_FILE_NAME,
+        REVIEWER_SUMMARY_FILE_NAME,
         TRACE_FILE_NAME,
     ]
     assert trace["counts"]["referenced_files_present"] == 6
@@ -82,5 +88,14 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
     assert trace["contract_review_summary"]["contracts_reviewed"] == 1
     assert trace["no_llm"] is True
     assert trace["orchestrator"] == "standard"
-    assert trace["status"] == "evidence_review_artifacts_created"
+    assert trace["review_pack_summary"]["datasets"] == 1
+    assert trace["reviewer_summary_written"] is True
+    assert trace["status"] == "review_summary_artifacts_created"
     assert not any(f'"status": "{term}"' in trace_text for term in FORBIDDEN_REVIEW_TERMS)
+
+
+def test_forbidden_runtime_dependencies_are_not_added() -> None:
+    pyproject = Path("pyproject.toml").read_text(encoding="utf-8").casefold()
+
+    for package_name in ("pandas", "openpyxl", "openai", "langgraph"):
+        assert package_name not in pyproject

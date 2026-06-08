@@ -260,7 +260,7 @@ def test_trace_includes_reconciliation_artifact_and_summary(tmp_path: Path) -> N
     trace = read_json(output_dir / TRACE_FILE_NAME)
     assert RECONCILIATION_RESULTS_FILE_NAME in trace["artifacts_written"]
     assert trace["reconciliation_summary"] == artifact["summary"]
-    assert trace["status"] == "evidence_review_artifacts_created"
+    assert trace["status"] == "review_summary_artifacts_created"
 
 
 def test_no_blocked_runtime_dependencies_are_added() -> None:

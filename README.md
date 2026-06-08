@@ -11,14 +11,14 @@ The tool reviews migration evidence. It does not assess migration readiness, app
 - Local-first: inputs and outputs stay on the local machine unless the user chooses otherwise outside this tool.
 - Artifact-driven: review output is based on explicit supplied files and generated artifacts.
 - Deterministic evidence first: repeatable local checks come before any language-model assistance.
-- LLM later, bounded and validated: PR #6 has no LLM dependency and makes no external LLM calls.
+- LLM later, bounded and validated: PR #7 has no LLM dependency and makes no external LLM calls.
 - Human authority remains final: the tool prepares review material, but people make decisions.
 - No cloud services and no hidden external calls.
 - No approval or go-live verdict language.
 
-## What PR #6 currently does
+## What PR #7 currently does
 
-PR #6 adds deterministic review artifacts for sensitive-field indicators, supplied test evidence files, and expected migration evidence coverage. It builds on local manifest intake, migration pack inventory, CSV dataset profiling, schema inventory, mapping review, contract review, and reconciliation results.
+PR #7 adds a deterministic machine-readable `review_pack.json` and human-readable `reviewer_summary.md`. These artifacts aggregate the existing local inventory, profiling, schema, mapping, contract, reconciliation, sensitive-field indicator, test evidence, and evidence coverage artifacts into reviewer-friendly findings and follow-up checklist items.
 
 The CLI can:
 
@@ -53,11 +53,13 @@ The CLI can:
 - write `test_evidence_review.json`
 - check whether expected evidence types are declared and whether referenced files are present for `migration_notes`, `cutover`, `rollback`, `risk`, and `acceptance`
 - write `evidence_coverage_review.json`
-- write an enriched `migration_readiness_trace.json` with summaries for all generated artifacts
+- aggregate deterministic findings and follow-up checklist items into `review_pack.json`
+- write `reviewer_summary.md`, which is usually the best first file for a human reviewer to read
+- write an enriched `migration_readiness_trace.json` with summaries for all generated artifacts, including the review pack summary
 
-PR #6 does not perform readiness scoring, readiness dimensions assessment, deterministic final reporting, LLM review, LangGraph orchestration, cloud connector access, approval workflows, remediation, legal certification, privacy certification, compliance certification, migration approval, or go-live decisions.
+PR #7 does not perform readiness scoring, readiness dimensions assessment, approval logic, LLM review, LangGraph orchestration, cloud connector access, approval workflows, remediation, legal certification, privacy certification, compliance certification, migration approval, or go-live decisions. The reviewer summary is for human review only.
 
-## Run the PR #6 local review CLI
+## Run the PR #7 local review CLI
 
 From the repository root:
 
@@ -83,12 +85,14 @@ outputs/example/reconciliation_results.json
 outputs/example/sensitive_field_review.json
 outputs/example/test_evidence_review.json
 outputs/example/evidence_coverage_review.json
+outputs/example/review_pack.json
+outputs/example/reviewer_summary.md
 outputs/example/migration_readiness_trace.json
 ```
 
-`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `dataset_profiles.json` contains CSV header details, row counts, column statistics, duplicate key counts, and bounded previews. `schema_inventory.json` lists source and target columns, key column presence, and schema overlap. `mapping_review.json` checks declared mapping CSV files against source and target schemas, including blank fields, missing field references, duplicate source or target mappings, and unmapped columns. `contract_review.json` checks declared contract YAML/YML files against target schemas and profiled target null/type information. `reconciliation_results.json` compares source and target row counts, checks key overlap with manifest `key_columns`, and compares directly mapped fields for shared keys. `sensitive_field_review.json` records possible sensitive-field indicators by column name and related mapping/contract mentions without copying raw row values. `test_evidence_review.json` records supplied test evidence structure and CSV status summaries. `evidence_coverage_review.json` records whether expected evidence types were declared and whether their files were present. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, inventory counts, and summaries for every generated artifact.
+`migration_inventory.json` contains manifest metadata, dataset declarations, referenced file metadata, counts, and any missing-file gaps. `dataset_profiles.json` contains CSV header details, row counts, column statistics, duplicate key counts, and bounded previews. `schema_inventory.json` lists source and target columns, key column presence, and schema overlap. `mapping_review.json` checks declared mapping CSV files against source and target schemas, including blank fields, missing field references, duplicate source or target mappings, and unmapped columns. `contract_review.json` checks declared contract YAML/YML files against target schemas and profiled target null/type information. `reconciliation_results.json` compares source and target row counts, checks key overlap with manifest `key_columns`, and compares directly mapped fields for shared keys. `sensitive_field_review.json` records possible sensitive-field indicators by column name and related mapping/contract mentions without copying raw row values. `test_evidence_review.json` records supplied test evidence structure and CSV status summaries. `evidence_coverage_review.json` records whether expected evidence types were declared and whether their files were present. `review_pack.json` aggregates deterministic findings and human follow-up checklist items from the generated artifacts. `reviewer_summary.md` is a concise human-readable summary and is usually the best first file for a human to open after a run. `migration_readiness_trace.json` records the local run settings, manifest path, artifacts written, inventory counts, and summaries for every generated artifact.
 
-These files are evidence review artifacts only. They are not assessment results or approval artifacts. Reconciliation compares direct mapped fields only; it does not compare unmapped fields, transform values, certify compliance, or decide readiness.
+These files are evidence review artifacts only. They are not assessment results or approval artifacts. Reconciliation compares direct mapped fields only; it does not compare unmapped fields, transform values, certify compliance, decide readiness, calculate a readiness score, or make a go-live decision.
 
 ## Manifest behavior
 
@@ -134,7 +138,7 @@ examples/migration_pack/
     └── test_results.csv
 ```
 
-The sample files are intentionally small. PR #6 profiles the CSV files in `data/`, inventories their schemas, reviews mapping CSV files in `mappings/`, reviews contract YAML files in `contracts/`, runs clean reconciliation checks across the sample source and target CSVs, structurally reviews CSV files in `tests/`, and checks coverage for the tiny Markdown evidence files in `evidence/`.
+The sample files are intentionally small. PR #7 profiles the CSV files in `data/`, inventories their schemas, reviews mapping CSV files in `mappings/`, reviews contract YAML files in `contracts/`, runs clean reconciliation checks across the sample source and target CSVs, structurally reviews CSV files in `tests/`, checks coverage for the tiny Markdown evidence files in `evidence/`, and writes `review_pack.json` plus `reviewer_summary.md`.
 
 ## Development
 
@@ -160,6 +164,7 @@ python -m ruff check .
 - PR #4: deterministic mapping and contract review artifacts
 - PR #5: deterministic reconciliation checks
 - PR #6: sensitive-field indicators, supplied test evidence structure, and expected evidence coverage
+- PR #7: deterministic reviewer summary and evidence pack
 - Future PR: bounded LLM review over validated artifacts
 - Future PR: orchestration once the deterministic steps are established
 
