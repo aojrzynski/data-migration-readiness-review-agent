@@ -215,6 +215,19 @@ def test_manifest_symlink_cannot_escape_pack_directory(tmp_path: Path) -> None:
     assert exc_info.value.code != 0
 
 
+def test_auto_discovered_manifest_symlink_cannot_escape_pack_directory(tmp_path: Path) -> None:
+    pack_path = make_pack(tmp_path)
+    (pack_path / "manifest.yaml").unlink()
+    outside_manifest = tmp_path / "outside.yaml"
+    outside_manifest.write_text(json.dumps(manifest_data()), encoding="utf-8")
+    (pack_path / "manifest.yaml").symlink_to(outside_manifest)
+
+    with pytest.raises(SystemExit) as exc_info:
+        run_cli(pack_path, tmp_path / "outputs")
+
+    assert exc_info.value.code != 0
+
+
 def test_referenced_file_path_cannot_escape_pack_directory(tmp_path: Path) -> None:
     data = manifest_data()
     data["datasets"][0]["source_path"] = "../outside.csv"

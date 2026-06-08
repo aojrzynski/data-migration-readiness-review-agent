@@ -53,12 +53,17 @@ def discover_manifest(pack_path: Path, manifest_path: Path | None) -> Path:
             raise ManifestError(f"--manifest must point to a file: {manifest_path}")
         return resolved_manifest
 
-    yaml_manifest = pack_path / "manifest.yaml"
-    if yaml_manifest.is_file():
-        return yaml_manifest.resolve()
-    yml_manifest = pack_path / "manifest.yml"
-    if yml_manifest.is_file():
-        return yml_manifest.resolve()
+    for file_name in ("manifest.yaml", "manifest.yml"):
+        manifest_candidate = pack_path / file_name
+        if manifest_candidate.exists() or manifest_candidate.is_symlink():
+            resolved_manifest = resolve_inside_pack(
+                pack_path,
+                Path(file_name),
+                description=file_name,
+            )
+            if not resolved_manifest.is_file():
+                raise ManifestError(f"{file_name} must point to a file.")
+            return resolved_manifest
     raise ManifestError(
         "No manifest found in pack directory. Expected manifest.yaml or manifest.yml."
     )
