@@ -1,12 +1,47 @@
 # Migration pack format
 
-A migration pack is a local directory containing a manifest plus the files referenced by that manifest. By default, the CLI looks for `manifest.yaml` and then `manifest.yml` in the pack root. You can also pass `--manifest PATH`.
+A migration pack is a local folder with a manifest and the evidence files referenced by that manifest. Paths in the manifest are relative to the pack and must stay inside the pack.
 
-## Path rules
+## Example directory layout
 
-Paths in the manifest are relative to the migration pack directory. The tool rejects paths that resolve outside the pack directory. This includes absolute paths and `..` segments that escape the pack.
+```text
+migration_pack/
+  manifest.yaml
+  data/
+    source_customers.csv
+    target_customers.csv
+  mappings/
+    customer_mapping.csv
+  contracts/
+    customer_contract.yaml
+  tests/
+    test_results.csv
+  evidence/
+    cutover_plan.md
+    rollback_plan.md
+```
 
-## Short manifest example
+## Manifest location
+
+By default, the CLI looks for `manifest.yaml` or `manifest.yml` in the pack. You can pass `--manifest` to use an explicit manifest path.
+
+## Required and optional sections
+
+Required:
+
+- `migration`
+- `datasets`
+
+Optional:
+
+- `mappings`
+- `contracts`
+- `test_results`
+- `evidence`
+- `sensitive_field_hints`
+- `readiness_dimensions`
+
+## Short YAML example
 
 ```yaml
 migration:
@@ -19,7 +54,8 @@ datasets:
   - dataset_id: customers
     source_path: data/source_customers.csv
     target_path: data/target_customers.csv
-    key_columns: [customer_id]
+    key_columns:
+      - customer_id
     row_count_tolerance: 0
 
 mappings:
@@ -37,9 +73,9 @@ test_results:
     path: tests/test_results.csv
 
 evidence:
-  - evidence_id: rollback_plan
-    evidence_type: rollback
-    path: evidence/rollback_plan.md
+  - evidence_id: cutover_plan
+    evidence_type: cutover
+    path: evidence/cutover_plan.md
 
 sensitive_field_hints:
   - email
@@ -50,54 +86,57 @@ readiness_dimensions:
   - reconciliation
 ```
 
-## Sections
+## Section notes
 
 ### `migration`
 
-Required. Describes the migration being reviewed. Common fields include `name`, `description`, `owner`, `source_system`, and `target_system`. These fields are carried into inventory and summary artifacts.
+Describes the migration name, owner, source system, target system, and optional description. It is used for traceability in artifacts.
 
 ### `datasets`
 
-Required for dataset profiling and reconciliation. Each dataset entry declares:
-
-- `dataset_id`: stable identifier used by mappings and contracts.
-- `source_path`: CSV source extract path relative to the pack.
-- `target_path`: CSV target extract path relative to the pack.
-- `key_columns`: optional list used for duplicate-key and key-overlap checks.
-- `row_count_tolerance`: optional numeric tolerance used by row-count reconciliation.
+Declares source and target CSV files. Each dataset should have a `dataset_id`, `source_path`, `target_path`, and optional `key_columns` and `row_count_tolerance`.
 
 ### `mappings`
 
-Optional. Each mapping entry declares a `mapping_id`, `dataset_id`, and CSV `path`. Mapping CSV files currently support direct source-field to target-field review using headers such as `source_field` and `target_field`.
+Declares CSV mapping files. Mapping files are parsed and checked against observed source and target schemas.
 
 ### `contracts`
 
-Optional. Each contract entry declares a `contract_id`, `dataset_id`, and YAML/YML `path`. Contract fields are reviewed against the observed target schema and target profile.
+Declares YAML or YML contract files. Contract fields are parsed and checked against target schemas and dataset profiles.
 
 ### `test_results`
 
-Optional. Each entry declares a `test_result_id` and file `path`. CSV files receive structured header, row-count, and status-count review. Markdown, text, YAML, and YAML-like files are recorded as supplied metadata rather than deeply parsed test results.
+Declares test evidence files. CSV test result files are structurally reviewed. Other files may be inventoried as declared evidence without deep parsing.
 
 ### `evidence`
 
-Optional. Each entry declares an `evidence_id`, `evidence_type`, and file `path`. Evidence files are used as presence evidence for expected types such as `migration_notes`, `cutover`, `rollback`, `risk`, and `acceptance`.
+Declares supporting files such as migration notes, risk logs, cutover notes, rollback notes, and acceptance notes. These files are inventoried for presence and evidence coverage.
 
 ### `sensitive_field_hints`
 
-Optional. A list of field-name hints that supplement deterministic column-name patterns. These hints help flag columns for human review without writing raw sensitive values.
+Lists words that should be treated as sensitive-field indicators when they appear in column names. Indicators are prompts for human review, not classifications.
 
 ### `readiness_dimensions`
 
-Optional metadata. The current workflow records these declared labels but does not assess dimensions, score them, or produce a verdict.
+Lists expected evidence dimensions for coverage review. The tool checks declared and present evidence against these expectations. It does not assess readiness.
 
-## Supported file types currently
+## Supported file types
+
+Parsed deeply:
 
 - CSV datasets.
 - CSV mappings.
 - YAML/YML contracts.
-- CSV, Markdown, text, YAML, or YAML-like test evidence metadata.
-- Markdown, text, YAML, or YAML-like evidence files as presence evidence.
+- CSV test result files.
 
-## What is not parsed yet
+Inventoried or checked for declared presence:
 
-The workflow does not parse Excel workbooks, databases, cloud storage locations, binary documents, PDFs, data warehouses, custom delimited files, or nested contract formats beyond the current YAML/YML contract structure. Non-CSV evidence documents are not evaluated for document quality or business meaning.
+- Evidence files such as Markdown or text notes.
+- Non-CSV test evidence files.
+
+## Not supported yet
+
+- XLSX, Parquet, Avro, JSONL, or database tables as profiled datasets.
+- PDF, DOCX, OCR, image extraction, or scanned evidence parsing.
+- Database, cloud, or SaaS connectors.
+- Transformation execution or remediation.
