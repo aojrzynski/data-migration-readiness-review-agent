@@ -13,6 +13,8 @@ RECONCILIATION_RESULTS_FILE_NAME = "reconciliation_results.json"
 SENSITIVE_FIELD_REVIEW_FILE_NAME = "sensitive_field_review.json"
 TEST_EVIDENCE_REVIEW_FILE_NAME = "test_evidence_review.json"
 EVIDENCE_COVERAGE_REVIEW_FILE_NAME = "evidence_coverage_review.json"
+REVIEW_PACK_FILE_NAME = "review_pack.json"
+REVIEWER_SUMMARY_FILE_NAME = "reviewer_summary.md"
 TRACE_FILE_NAME = "migration_readiness_trace.json"
 
 

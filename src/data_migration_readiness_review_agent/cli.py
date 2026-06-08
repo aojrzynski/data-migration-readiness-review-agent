@@ -13,6 +13,8 @@ from data_migration_readiness_review_agent.artifacts import (
     INVENTORY_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
+    REVIEW_PACK_FILE_NAME,
+    REVIEWER_SUMMARY_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
     SENSITIVE_FIELD_REVIEW_FILE_NAME,
     TEST_EVIDENCE_REVIEW_FILE_NAME,
@@ -39,6 +41,11 @@ from data_migration_readiness_review_agent.reconciliation import (
     RECONCILIATION_NOTE,
     build_reconciliation_results,
 )
+from data_migration_readiness_review_agent.review_pack import REVIEW_PACK_NOTE, build_review_pack
+from data_migration_readiness_review_agent.reviewer_summary import (
+    REVIEWER_SUMMARY_NOTE,
+    write_reviewer_summary,
+)
 from data_migration_readiness_review_agent.schema_inventory import (
     SCHEMA_INVENTORY_NOTE,
     build_schema_inventory,
@@ -54,14 +61,13 @@ from data_migration_readiness_review_agent.test_evidence import (
 )
 
 TRACE_NOTE = (
-    "PR #6 created local review artifacts for sensitive-field indicators, supplied test "
-    "evidence structure, and expected evidence coverage. No readiness assessment, LLM review, "
-    "LangGraph orchestration, legal/privacy/compliance conclusions, or migration approval was "
-    "performed."
+    "PR #7 created deterministic review pack and reviewer summary artifacts. No readiness "
+    "assessment, scoring, LLM review, LangGraph orchestration, legal/privacy/compliance "
+    "certification, or migration approval was performed."
 )
 
 
-ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path, Path]
+ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path, Path]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -153,6 +159,8 @@ def build_trace(
     sensitive_field_summary: dict[str, int],
     test_evidence_summary: dict[str, int],
     evidence_coverage_summary: dict[str, int],
+    review_pack_summary: dict[str, int],
+    reviewer_summary_path: Path,
 ) -> dict[str, Any]:
     return {
         "tool_name": TOOL_NAME,
@@ -162,7 +170,7 @@ def build_trace(
         "manifest_path": str(manifest_path),
         "no_llm": no_llm,
         "orchestrator": orchestrator,
-        "status": "evidence_review_artifacts_created",
+        "status": "review_summary_artifacts_created",
         "artifacts_written": [
             INVENTORY_FILE_NAME,
             DATASET_PROFILES_FILE_NAME,
@@ -173,6 +181,8 @@ def build_trace(
             SENSITIVE_FIELD_REVIEW_FILE_NAME,
             TEST_EVIDENCE_REVIEW_FILE_NAME,
             EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
+            REVIEW_PACK_FILE_NAME,
+            REVIEWER_SUMMARY_FILE_NAME,
             TRACE_FILE_NAME,
         ],
         "counts": inventory_counts,
@@ -184,6 +194,9 @@ def build_trace(
         "sensitive_field_summary": sensitive_field_summary,
         "test_evidence_summary": test_evidence_summary,
         "evidence_coverage_summary": evidence_coverage_summary,
+        "review_pack_summary": review_pack_summary,
+        "reviewer_summary_path": str(reviewer_summary_path),
+        "reviewer_summary_written": True,
         "notes": [
             INVENTORY_NOTE,
             PROFILE_NOTE,
@@ -194,6 +207,8 @@ def build_trace(
             SENSITIVE_FIELD_REVIEW_NOTE,
             TEST_EVIDENCE_REVIEW_NOTE,
             EVIDENCE_COVERAGE_REVIEW_NOTE,
+            REVIEW_PACK_NOTE,
+            REVIEWER_SUMMARY_NOTE,
             TRACE_NOTE,
         ],
     }
@@ -221,6 +236,16 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         )
         test_evidence_review = build_test_evidence_review(loaded_manifest)
         evidence_coverage_review = build_evidence_coverage_review(loaded_manifest)
+        review_pack = build_review_pack(
+            inventory=inventory,
+            dataset_profiles=dataset_profiles,
+            mapping_review=mapping_review,
+            contract_review=contract_review,
+            reconciliation_results=reconciliation_results,
+            sensitive_field_review=sensitive_field_review,
+            test_evidence_review=test_evidence_review,
+            evidence_coverage_review=evidence_coverage_review,
+        )
     except ManifestError as exc:
         parser.error(str(exc))
 
@@ -247,6 +272,10 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
     evidence_coverage_review_path = write_json_artifact(
         evidence_coverage_review, output_dir, EVIDENCE_COVERAGE_REVIEW_FILE_NAME
     )
+    review_pack_path = write_json_artifact(review_pack, output_dir, REVIEW_PACK_FILE_NAME)
+    reviewer_summary_path = write_reviewer_summary(
+        review_pack, output_dir, REVIEWER_SUMMARY_FILE_NAME
+    )
     trace = build_trace(
         pack_path=pack_path,
         output_dir=output_dir,
@@ -262,6 +291,8 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         sensitive_field_summary=sensitive_field_review["summary"],
         test_evidence_summary=test_evidence_review["summary"],
         evidence_coverage_summary=evidence_coverage_review["summary"],
+        review_pack_summary=review_pack["summary"],
+        reviewer_summary_path=reviewer_summary_path,
     )
     trace_path = write_json_artifact(trace, output_dir, TRACE_FILE_NAME)
     return (
@@ -274,6 +305,8 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         sensitive_field_review_path,
         test_evidence_review_path,
         evidence_coverage_review_path,
+        review_pack_path,
+        reviewer_summary_path,
         trace_path,
     )
 
@@ -291,6 +324,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         sensitive_field_review_path,
         test_evidence_review_path,
         evidence_coverage_review_path,
+        review_pack_path,
+        reviewer_summary_path,
         trace_path,
     ) = run(args, parser)
     print(f"Wrote migration inventory: {inventory_path}")
@@ -302,6 +337,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"Wrote sensitive field review: {sensitive_field_review_path}")
     print(f"Wrote test evidence review: {test_evidence_review_path}")
     print(f"Wrote evidence coverage review: {evidence_coverage_review_path}")
+    print(f"Wrote review pack: {review_pack_path}")
+    print(f"Wrote reviewer summary: {reviewer_summary_path}")
     print(f"Wrote migration trace: {trace_path}")
     print(INVENTORY_NOTE)
     print(PROFILE_NOTE)
@@ -311,6 +348,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(SENSITIVE_FIELD_REVIEW_NOTE)
     print(TEST_EVIDENCE_REVIEW_NOTE)
     print(EVIDENCE_COVERAGE_REVIEW_NOTE)
+    print(REVIEW_PACK_NOTE)
+    print(REVIEWER_SUMMARY_NOTE)
     return 0
 
 

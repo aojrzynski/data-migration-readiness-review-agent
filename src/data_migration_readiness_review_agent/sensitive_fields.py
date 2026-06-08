@@ -8,7 +8,7 @@ from data_migration_readiness_review_agent.models import LoadedManifest
 
 SENSITIVE_FIELD_REVIEW_NOTE = (
     "PR #6 reviews sensitive-field indicators only. It does not classify legal/privacy "
-    "status, decide whether data handling is acceptable."
+    "status or decide whether data handling is acceptable."
 )
 
 BUILT_IN_INDICATORS = (
