@@ -111,7 +111,7 @@ def test_contract_with_missing_or_malformed_fields_records_failed_check(tmp_path
         "  - type: integer\n"
         "  - name: email\n"
         "    type: 123\n"
-        "    required: yes\n",
+        "    required: not_bool\n",
         encoding="utf-8",
     )
     output_dir = tmp_path / "outputs"
