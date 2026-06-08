@@ -12,6 +12,12 @@ The current workflow favors repeatable checks over generated judgment. Given the
 
 Each step writes an artifact with a narrow purpose. Reviewers can inspect details without reading code or rerunning the whole workflow.
 
+## Orchestration separation
+
+The CLI stays thin: it parses arguments, validates simple command-line constraints, builds a run configuration, calls the selected orchestrator, and prints artifact paths and notes. The current supported orchestrator is the deterministic `standard` orchestrator. It owns the ordered workflow from manifest loading through artifact writing and trace creation.
+
+Future optional orchestrators may be added behind this seam, but deterministic artifacts remain the authority for the local review workflow. Alternative orchestration must not turn the tool into a readiness assessor, approval engine, certification workflow, cloud connector, or automatic decision-maker.
+
 ## Bounded outputs
 
 Dataset previews, distinct values, mismatch samples, missing-key samples, and warning summaries are bounded. This keeps artifacts small and reduces accidental exposure of full datasets.

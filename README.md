@@ -11,6 +11,7 @@ The tool prepares evidence for human review. It does not assess readiness, appro
 - **Local-first:** the default CLI reads local files and writes local artifacts. It does not make cloud calls.
 - **Deterministic-first:** current checks use the Python standard library plus PyYAML and are intended to produce repeatable artifacts from the same pack.
 - **Artifact-driven:** each review step writes a small JSON or Markdown artifact that can be opened directly.
+- **Standard orchestrator:** the current local workflow uses the deterministic `standard` orchestrator to run the ordered artifact workflow.
 - **Human authority:** the artifacts organize evidence and findings; people remain responsible for decisions outside the tool.
 - **Bounded output:** previews and samples are limited so generated files stay small and do not dump full datasets.
 - **Optional LLM notes:** supplemental OpenAI-backed reviewer notes are available only when explicitly requested, use bounded `review_pack.json` context, and remain non-authoritative.

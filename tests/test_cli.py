@@ -22,7 +22,13 @@ from data_migration_readiness_review_agent.artifacts import (
     TRACE_FILE_NAME,
 )
 from data_migration_readiness_review_agent.cli import main
-from helpers import FORBIDDEN_REVIEW_TERMS, make_pack, read_json, run_cli
+from helpers import (
+    EXPECTED_ARTIFACT_FILE_ORDER,
+    FORBIDDEN_REVIEW_TERMS,
+    make_pack,
+    read_json,
+    run_cli,
+)
 
 
 def test_cli_version_works(capsys: pytest.CaptureFixture[str]) -> None:
@@ -40,6 +46,8 @@ def test_orchestrator_help_text_is_pr_agnostic(capsys: pytest.CaptureFixture[str
     help_text = capsys.readouterr().out
     assert exc_info.value.code == 0
     assert "PR #6" not in help_text
+    assert "PR #9 supports openai only" not in help_text
+    assert "optional LLM reviewer currently supports openai only." in help_text
     assert "The deterministic local" in help_text
     assert "workflow currently supports 'standard'." in help_text
 
@@ -78,21 +86,7 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
     trace = read_json(output_dir / TRACE_FILE_NAME)
     trace_text = json.dumps(trace).lower()
     assert trace["manifest_path"].endswith("manifest.yaml")
-    assert trace["artifacts_written"] == [
-        INVENTORY_FILE_NAME,
-        DATASET_PROFILES_FILE_NAME,
-        SCHEMA_INVENTORY_FILE_NAME,
-        MAPPING_REVIEW_FILE_NAME,
-        CONTRACT_REVIEW_FILE_NAME,
-        RECONCILIATION_RESULTS_FILE_NAME,
-        SENSITIVE_FIELD_REVIEW_FILE_NAME,
-        TEST_EVIDENCE_REVIEW_FILE_NAME,
-        EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
-        REVIEW_PACK_FILE_NAME,
-        REVIEWER_SUMMARY_FILE_NAME,
-        LLM_REVIEWER_NOTES_FILE_NAME,
-        TRACE_FILE_NAME,
-    ]
+    assert trace["artifacts_written"] == EXPECTED_ARTIFACT_FILE_ORDER
     assert trace["counts"]["referenced_files_present"] == 6
     assert trace["reconciliation_summary"]["datasets_reconciled"] == 1
     assert trace["sensitive_field_summary"]["datasets_reviewed"] == 1
@@ -102,6 +96,7 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
     assert trace["contract_review_summary"]["contracts_reviewed"] == 1
     assert trace["no_llm"] is True
     assert trace["orchestrator"] == "standard"
+    assert trace["orchestration"]["mode"] == "standard"
     assert trace["review_pack_summary"]["datasets"] == 1
     assert trace["reviewer_summary_written"] is True
     assert trace["llm_review_summary"] == {
@@ -134,6 +129,25 @@ def test_llm_review_and_no_llm_conflict_exits_nonzero(tmp_path: Path) -> None:
     with pytest.raises(SystemExit) as exc_info:
         main(
             ["--pack", str(pack_path), "--output-dir", str(output_dir), "--no-llm", "--llm-review"]
+        )
+
+    assert exc_info.value.code == 2
+
+
+def test_llm_max_input_chars_below_one_exits_nonzero(tmp_path: Path) -> None:
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            [
+                "--pack",
+                str(pack_path),
+                "--output-dir",
+                str(output_dir),
+                "--llm-max-input-chars",
+                "0",
+            ]
         )
 
     assert exc_info.value.code == 2

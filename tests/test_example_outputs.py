@@ -20,7 +20,7 @@ from data_migration_readiness_review_agent.artifacts import (
 )
 from data_migration_readiness_review_agent.cli import main
 from data_migration_readiness_review_agent.safe_language import find_forbidden_terms
-from helpers import EXPECTED_ARTIFACT_FILES, read_json
+from helpers import EXPECTED_ARTIFACT_FILE_ORDER, EXPECTED_ARTIFACT_FILES, read_json
 
 EXAMPLE_OUTPUT_DIR = Path("examples/example_outputs")
 EXPECTED_JSON_STATUSES = {
@@ -60,7 +60,9 @@ def test_committed_example_outputs_have_expected_statuses() -> None:
 
     trace = read_json(EXAMPLE_OUTPUT_DIR / TRACE_FILE_NAME)
     assert trace["status"] == "review_summary_artifacts_created"
-    assert set(trace["artifacts_written"]) == EXPECTED_ARTIFACT_FILES
+    assert trace["artifacts_written"] == EXPECTED_ARTIFACT_FILE_ORDER
+    assert trace["orchestrator"] == "standard"
+    assert trace["orchestration"]["mode"] == "standard"
 
 
 def test_committed_example_llm_artifact_is_not_requested_and_safe() -> None:

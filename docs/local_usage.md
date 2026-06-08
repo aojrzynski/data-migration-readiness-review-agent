@@ -55,6 +55,10 @@ After package installation, this installed CLI form is equivalent:
 data-migration-readiness-review --pack examples/migration_pack --output-dir outputs/example --no-llm
 ```
 
+## Orchestrator option
+
+`--orchestrator standard` is currently the only supported orchestrator. It is the default, so the option can be omitted for normal local runs.
+
 ## Open the reviewer summary first
 
 Open this file first after the example run:
