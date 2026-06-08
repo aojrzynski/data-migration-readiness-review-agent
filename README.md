@@ -1,104 +1,186 @@
 # Data Migration Readiness Review Agent
 
-Data migration reviews often require people to inspect many small pieces of evidence: source extracts, target extracts, mappings, contract files, reconciliation notes, test evidence, risk notes, cutover notes, rollback notes, and acceptance notes. Those files can be spread across folders and can be hard to evaluate consistently.
+Given a migration pack, what evidence do we have, what gaps or mismatches are visible, and what should a human reviewer check next?
 
-Data Migration Readiness Review Agent is a local Python CLI that turns a migration pack into deterministic review artifacts. It inventories supplied files, profiles CSV datasets, checks declared mappings and contracts against observed schemas, performs deterministic reconciliation checks, records sensitive-field indicators, reviews supplied test-evidence structure, checks evidence coverage, and writes a reviewer-facing summary.
+## What this tool is
 
-The tool prepares evidence for human review. It does not assess readiness, approve migration activity, decide go-live, certify compliance, certify security or privacy status, certify legal or governance status, or replace human reviewers.
+Data Migration Readiness Review Agent is a local command-line tool. It reads a local migration pack and writes deterministic review artifacts. It helps a human reviewer inspect migration evidence before that reviewer records decisions in the normal workplace process.
 
-## Approach
+The tool prepares evidence and review material. It does not assess readiness, approve migration, decide go-live, certify compliance, certify security, certify privacy, certify legal status, certify governance status, replace human review, or make a final decision.
 
-- **Local-first:** the default CLI reads local files and writes local artifacts. It does not make cloud calls.
-- **Deterministic-first:** current checks use the Python standard library plus PyYAML and are intended to produce repeatable artifacts from the same pack.
-- **Artifact-driven:** each review step writes a small JSON or Markdown artifact that can be opened directly.
-- **Standard orchestrator:** the default local workflow uses the deterministic `standard` orchestrator to run the ordered artifact workflow.
-- **Optional LangGraph orchestrator:** `--orchestrator langgraph` can run the same deterministic workflow when the optional `graph` extra is installed.
-- **Human authority:** the artifacts organize evidence and findings; people remain responsible for decisions outside the tool.
-- **Bounded output:** previews and samples are limited so generated files stay small and do not dump full datasets.
-- **Optional LLM notes:** supplemental OpenAI-backed reviewer notes are available only when explicitly requested, use bounded `review_pack.json` context, and remain non-authoritative.
+## The workplace problem
+
+Migration reviews often involve source extracts, target extracts, mapping files, contracts, reconciliation notes, test results, risks, cutover notes, rollback notes, and acceptance notes.
+
+Those files are often spread across folders. People may ask whether the migration can proceed before the evidence is organized. The tool helps structure that evidence so a reviewer can see what exists, what is missing, what mismatches were found, and what needs follow-up.
+
+## What this project does
+
+1. Reads the manifest.
+2. Inventories referenced files.
+3. Profiles CSV source and target files.
+4. Inventories schemas.
+5. Reviews mappings and contracts.
+6. Runs deterministic reconciliation checks.
+7. Flags sensitive-field indicators.
+8. Reviews supplied test evidence structure.
+9. Checks expected evidence coverage.
+10. Builds `review_pack.json`.
+11. Writes `reviewer_summary.md`.
+12. Optionally writes bounded LLM reviewer notes.
+13. Records trace metadata.
+
+## What to open first
+
+Open `reviewer_summary.md` first after a run. It gives the run boundary, summary counts, grouped findings, artifact index, and follow-up checklist.
+
+Then open:
+
+- `review_pack.json` for structured findings and follow-up items.
+- `migration_readiness_trace.json` to see what ran and which artifacts were written.
+- Detailed JSON artifacts for each review area.
+- `llm_reviewer_notes.json` only as supplemental notes when optional LLM review was requested or skipped.
+
+## Why deterministic evidence matters
+
+The same inputs should produce the same review evidence. The workflow writes JSON artifacts before the Markdown summary so the summary is based on structured records. Optional LLM notes are downstream of the deterministic review pack and do not change deterministic findings.
+
+## Why not just ask an LLM?
+
+An LLM can sound confident without showing evidence. This tool builds deterministic artifacts first. Optional LLM notes use bounded `review_pack.json` context, are written separately, and do not change deterministic findings or authority boundaries.
 
 ## Quick start
 
-From the repository root, run the example migration pack:
+Install the package with development dependencies:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+Run the example pack with the Python module form:
 
 ```bash
 python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/example --no-llm
 ```
 
-After package installation, the installed CLI form is:
+Or use the installed CLI form:
 
 ```bash
 data-migration-readiness-review --pack examples/migration_pack --output-dir outputs/example --no-llm
 ```
 
-Open `outputs/example/reviewer_summary.md` first. It is the best first artifact to open for a human reviewer because it gives the run boundary, summary counts, grouped findings, artifact index, and follow-up checklist.
+Committed sample outputs are available in `examples/example_outputs/` for a quick look without running the command.
 
-Committed sample artifacts are available in `examples/example_outputs/` for a quick look without running the command. The default command writes `llm_reviewer_notes.json` with `llm_review_not_requested` and does not call an LLM.
+## Optional LLM notes
 
-## Current artifact list
-
-- `migration_inventory.json` inventories manifest metadata, declared references, file presence, and missing-file gaps.
-- `dataset_profiles.json` profiles source and target CSV files with row counts, columns, nulls, inferred types, distinct counts, duplicate-key counts, and bounded previews.
-- `schema_inventory.json` summarizes source and target schema overlap and key-column presence.
-- `mapping_review.json` checks mapping CSV rows against observed source and target schemas.
-- `contract_review.json` checks YAML/YML contract fields against target schemas and dataset profiles.
-- `reconciliation_results.json` compares row counts, key overlap, and direct mapped-field values.
-- `sensitive_field_review.json` records deterministic sensitive-field indicators without writing raw sensitive values.
-- `test_evidence_review.json` records supplied test-evidence structure, status counts, and bounded failed/warning summaries.
-- `evidence_coverage_review.json` records whether expected evidence types are declared and present.
-- `review_pack.json` aggregates deterministic findings and follow-up checklist items in compact machine-readable form.
-- `reviewer_summary.md` presents the reviewer-facing summary and checklist.
-- `llm_reviewer_notes.json` records default not-requested status or optional supplemental LLM reviewer notes.
-- `migration_readiness_trace.json` records run settings and artifact summaries, including LLM note status.
-
-## Optional LLM reviewer notes
-
-The default workflow remains deterministic and local-first. It does not call an LLM unless `--llm-review` is provided. To install the optional OpenAI dependency for supplemental reviewer notes, run:
+Install the optional LLM dependency:
 
 ```bash
 python -m pip install -e ".[dev,llm]"
 ```
 
-Example optional command:
+Run with optional LLM reviewer notes:
 
 ```bash
-python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/example --llm-review --llm-provider openai --llm-model YOUR_MODEL_NAME
+data-migration-readiness-review --pack examples/migration_pack --output-dir outputs/llm-example --llm-review --llm-model YOUR_MODEL_NAME
 ```
 
-If `--llm-model` is absent, the CLI uses `OPENAI_MODEL` when set. The OpenAI SDK reads `OPENAI_API_KEY` from the environment by its standard behavior; the tool does not write environment values to artifacts. Missing optional dependency, missing model, or API failures are recorded in `llm_reviewer_notes.json` without blocking deterministic artifacts.
+`OPENAI_API_KEY` is used by the OpenAI client. `OPENAI_MODEL` can be used as a default model if `--llm-model` is not supplied. Do not put real key values in commands, docs, committed files, or shared artifacts.
 
-LLM output is supplemental only. Deterministic artifacts remain authoritative. The optional layer does not add readiness scoring, approval logic, go-live decisions, legal/privacy/compliance certification, or human replacement. It does not add cloud connectors, remediation workflows, or automatic decisions.
+## Optional LangGraph orchestration
 
-## Optional LangGraph orchestrator
-
-The default orchestrator is `standard`. If you want to run the same deterministic workflow through LangGraph, install the optional graph dependency and pass `--orchestrator langgraph`:
+Install the optional graph dependency:
 
 ```bash
 python -m pip install -e ".[dev,graph]"
-python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/langgraph-example --no-llm --orchestrator langgraph
 ```
 
-This changes orchestration only. It does not add review checks, scoring, approval behavior, certification behavior, cloud connectors, or authoritative LLM behavior.
+Run the same workflow through the LangGraph orchestrator:
 
-## Documentation
+```bash
+data-migration-readiness-review --pack examples/migration_pack --output-dir outputs/langgraph-example --no-llm --orchestrator langgraph
+```
 
-- [Overview](docs/overview.md)
-- [Local usage](docs/local_usage.md)
-- [Migration pack format](docs/migration_pack_format.md)
-- [Artifacts](docs/artifacts.md)
-- [Reviewer workflow](docs/reviewer_workflow.md)
+`standard` is the default orchestrator. LangGraph changes orchestration only. It does not change artifact meaning or authority boundaries.
+
+## Output artifacts
+
+| Artifact | Purpose |
+| --- | --- |
+| `migration_inventory.json` | Lists manifest-declared files and file-presence gaps. |
+| `dataset_profiles.json` | Profiles CSV headers, row counts, nulls, inferred types, and duplicate keys. |
+| `schema_inventory.json` | Lists source and target schemas and key-column presence. |
+| `mapping_review.json` | Reviews mapping files against source and target schemas. |
+| `contract_review.json` | Reviews contract files against target schemas and profiles. |
+| `reconciliation_results.json` | Records deterministic row-count, key-overlap, and mapped-field checks. |
+| `sensitive_field_review.json` | Records sensitive-field indicators from hints and column-name patterns. |
+| `test_evidence_review.json` | Reviews supplied test evidence structure. |
+| `evidence_coverage_review.json` | Checks whether expected evidence types are declared and present. |
+| `review_pack.json` | Aggregates deterministic findings and follow-up items. |
+| `reviewer_summary.md` | Human-readable summary. Open this first. |
+| `llm_reviewer_notes.json` | Optional supplemental LLM notes or skipped status. |
+| `migration_readiness_trace.json` | Records run settings, summaries, artifact paths, and orchestration metadata. |
+
+## Safety and authority boundaries
+
+The tool may include:
+
+- Column names.
+- Aggregate counts.
+- File paths.
+- Schema names.
+- Status values.
+- Bounded key or mismatch samples in deterministic reconciliation artifacts.
+- Human follow-up prompts.
+
+The tool should not include:
+
+- Full raw datasets.
+- API keys.
+- Approval decisions.
+- Legal, privacy, compliance, security, or governance verdicts.
+- Final migration decisions.
+
+## Project structure
+
+```text
+src/data_migration_readiness_review_agent/  Python package and CLI workflow
+docs/                                      Plain-English docs
+examples/migration_pack/                   Small local example migration pack
+examples/example_outputs/                  Committed example outputs
+tests/                                     Unit and CLI tests
+```
+
+## Run tests
+
+```bash
+python -m compileall src tests
+python -m pytest -q
+python -m ruff check .
+```
+
+## Limitations and non-goals
+
+- Local files only.
+- CSV datasets only.
+- CSV mappings only.
+- YAML/YML contracts only.
+- No PDF, DOCX, or OCR support.
+- No database, cloud, or SaaS connectors.
+- No transformation execution.
+- No remediation.
+- No final approval, no readiness score, and no go-live decision.
+
+## Further reading
+
+- [Architecture](docs/architecture.md)
 - [Design principles](docs/design_principles.md)
-
-## Current limitations
-
-- CSV is the only dataset format profiled.
-- Mapping files are CSV only.
-- Contract files are YAML/YML only.
-- Test evidence is structurally reviewed; document quality and business meaning are not evaluated.
-- Evidence files are treated mainly as declared presence evidence.
-- Reconciliation checks are deterministic and limited to configured keys and direct mapped fields.
-- Outputs are review aids, not verdicts.
-
-## What the tool does not do
-
-The current workflow does not add readiness scoring, readiness dimension assessment, final go/no-go recommendations, cloud connectors, approval workflows, remediation generation, legal/compliance/privacy certification, or automatic decisions. Optional LLM reviewer notes are supplemental only and do not change deterministic findings. Optional LangGraph support changes orchestration only.
+- [Artifacts](docs/artifacts.md)
+- [Demo workflow](docs/demo_workflow.md)
+- [Example commands](docs/example_commands.md)
+- [Migration pack format](docs/migration_pack_format.md)
+- [Reviewer workflow](docs/reviewer_workflow.md)
+- [Safety boundaries](docs/safety_boundaries.md)
+- [LLM reviewer notes](docs/llm_reviewer_notes.md)
+- [Orchestration](docs/orchestration.md)
+- [Roadmap](docs/roadmap.md)

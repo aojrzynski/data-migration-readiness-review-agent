@@ -1,65 +1,53 @@
 # Design principles
 
-## Local-first
+## Local-first by default
 
-The workflow reads local migration pack files and writes local artifacts. It does not call cloud services or external APIs.
+The default workflow reads local files and writes local artifacts. It does not make hidden external calls.
 
 ## Deterministic evidence first
 
-The current workflow favors repeatable checks over generated judgment. Given the same migration pack and local path context, outputs should be stable except for path values recorded in the trace.
+The core review steps are deterministic. The same migration pack should produce the same review evidence, aside from local paths and run metadata.
 
-## Artifact-driven workflow
+## Artifact-driven review
 
-Each step writes an artifact with a narrow purpose. Reviewers can inspect details without reading code or rerunning the whole workflow.
+Each stage writes a focused artifact. Reviewers can inspect the summary first, then open detailed JSON files when they need more context.
 
-## Orchestration separation
+## JSON artifacts before Markdown summary
 
-The CLI stays thin: it parses arguments, validates simple command-line constraints, builds a run configuration, calls the selected orchestrator, and prints artifact paths and notes. The deterministic `standard` orchestrator remains the default and owns the ordered workflow from manifest loading through artifact writing and trace creation.
-
-## Orchestration options
-
-The standard orchestrator is the deterministic default. The optional LangGraph orchestrator is available only when the `graph` extra is installed and runs the same deterministic artifact workflow through a LangGraph state graph. Both orchestrators preserve the same artifact semantics; the trace records which orchestration mode was used.
-
-Deterministic artifacts remain the authority for the local review workflow. Orchestration does not imply agentic authority, readiness assessment, approval authority, certification workflow, cloud connector behavior, or automatic decision-making.
+Structured JSON artifacts are written before `reviewer_summary.md`. The Markdown summary is a readable view over deterministic records.
 
 ## Bounded outputs
 
-Dataset previews, distinct values, mismatch samples, missing-key samples, and warning summaries are bounded. This keeps artifacts small and reduces accidental exposure of full datasets.
+Outputs are intended to stay small. The tool records counts, headers, statuses, and bounded samples rather than dumping full datasets.
 
-## Safe language
+## Sensitive value caution
 
-Reviewer-facing outputs avoid verdict wording. The tool prepares findings and checklist items; it does not approve migration activity, decide go-live, certify compliance, or replace human reviewers.
+Sensitive-field indicators are prompts for review. They are not legal or privacy classifications. Raw sensitive values should not be copied into docs, prompts, tickets, or committed artifacts.
 
 ## Path safety
 
-Manifest and referenced paths must stay inside the migration pack directory. This protects local runs from accidentally reading files outside the intended evidence pack.
+Manifest and referenced paths are expected to stay inside the migration pack. This keeps a pack from reaching into unrelated local files.
 
-## Privacy caution
+## Safe language
 
-Sensitive-field review records indicators from field names and hints. It avoids writing raw sensitive values. Reviewers should still handle all generated artifacts according to their organization’s data-handling rules.
+The tool should use evidence and follow-up language. It does not assess readiness, approve migration, decide go-live, certify compliance, certify security, certify privacy, certify legal status, certify governance status, or make a final decision.
 
-## Human reviewer remains final authority
+## Optional LLM notes are non-authoritative
 
-The workflow supports review. It does not make automatic decisions. Human reviewers must interpret evidence and record decisions outside the tool.
+LLM reviewer notes are requested explicitly. They use bounded review-pack context, are written separately, and do not change deterministic findings.
 
-## Why pandas is not used yet
+## Optional LangGraph orchestration changes coordination only
 
-The current CSV profiling uses the Python standard library to keep runtime dependencies small and behavior easy to inspect. Pandas may be useful later for broader data handling, but it is not needed for the current deterministic workflow.
+The optional LangGraph path changes how stages are coordinated. It does not change artifact semantics or authority boundaries.
 
-## Why OpenAI and LangGraph are optional
+## Human review remains final authority
 
-The default workflow does not require OpenAI or LangGraph. Keeping OpenAI in the optional `llm` dependency group and LangGraph in the optional `graph` dependency group preserves deterministic local setup by default.
+People must interpret findings, inspect source evidence, ask follow-up questions, and record decisions in the organization system outside this tool.
 
-## Why artifact outputs avoid dumping full datasets
+## No generated code execution
 
-Migration extracts can contain sensitive or business-critical data. The tool writes counts, schemas, bounded previews, and bounded samples rather than copying full source or target datasets into generated artifacts.
+The tool reviews supplied files. It does not generate and execute remediation code.
 
-## Why the tool avoids approval and certification language
+## No hidden external calls
 
-Generated artifacts can help reviewers find gaps and questions, but organizational decisions require context, ownership, controls, and accountability outside this CLI. The wording avoids implying that a local deterministic run can replace those processes.
-
-## Optional LLM reviewer notes
-
-The optional LLM layer is separate from deterministic review artifacts and is not authoritative. It uses bounded input generated from the in-memory review pack, not from raw generated files. The prompt context excludes raw rows, preview rows, raw sensitive values, raw mismatch values, local absolute paths where avoidable, and environment values.
-
-LLM output is written only to `llm_reviewer_notes.json`. It is parsed as JSON, checked against the expected top-level schema, and rejected if safe-language validation finds positive verdict wording. The LLM notes do not modify `review_pack.json`, do not modify `reviewer_summary.md`, and do not make decisions for human reviewers.
+The default run is local. External LLM calls occur only when optional LLM review is explicitly requested and configured.
