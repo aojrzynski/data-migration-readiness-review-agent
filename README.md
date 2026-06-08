@@ -11,7 +11,8 @@ The tool prepares evidence for human review. It does not assess readiness, appro
 - **Local-first:** the default CLI reads local files and writes local artifacts. It does not make cloud calls.
 - **Deterministic-first:** current checks use the Python standard library plus PyYAML and are intended to produce repeatable artifacts from the same pack.
 - **Artifact-driven:** each review step writes a small JSON or Markdown artifact that can be opened directly.
-- **Standard orchestrator:** the current local workflow uses the deterministic `standard` orchestrator to run the ordered artifact workflow.
+- **Standard orchestrator:** the default local workflow uses the deterministic `standard` orchestrator to run the ordered artifact workflow.
+- **Optional LangGraph orchestrator:** `--orchestrator langgraph` can run the same deterministic workflow when the optional `graph` extra is installed.
 - **Human authority:** the artifacts organize evidence and findings; people remain responsible for decisions outside the tool.
 - **Bounded output:** previews and samples are limited so generated files stay small and do not dump full datasets.
 - **Optional LLM notes:** supplemental OpenAI-backed reviewer notes are available only when explicitly requested, use bounded `review_pack.json` context, and remain non-authoritative.
@@ -66,7 +67,18 @@ python -m data_migration_readiness_review_agent.cli --pack examples/migration_pa
 
 If `--llm-model` is absent, the CLI uses `OPENAI_MODEL` when set. The OpenAI SDK reads `OPENAI_API_KEY` from the environment by its standard behavior; the tool does not write environment values to artifacts. Missing optional dependency, missing model, or API failures are recorded in `llm_reviewer_notes.json` without blocking deterministic artifacts.
 
-LLM output is supplemental only. Deterministic artifacts remain authoritative. The optional layer does not add readiness scoring, approval logic, go-live decisions, legal/privacy/compliance certification, or human replacement. It does not add LangGraph, cloud connectors, remediation workflows, or automatic decisions.
+LLM output is supplemental only. Deterministic artifacts remain authoritative. The optional layer does not add readiness scoring, approval logic, go-live decisions, legal/privacy/compliance certification, or human replacement. It does not add cloud connectors, remediation workflows, or automatic decisions.
+
+## Optional LangGraph orchestrator
+
+The default orchestrator is `standard`. If you want to run the same deterministic workflow through LangGraph, install the optional graph dependency and pass `--orchestrator langgraph`:
+
+```bash
+python -m pip install -e ".[dev,graph]"
+python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/langgraph-example --no-llm --orchestrator langgraph
+```
+
+This changes orchestration only. It does not add review checks, scoring, approval behavior, certification behavior, cloud connectors, or authoritative LLM behavior.
 
 ## Documentation
 
@@ -89,4 +101,4 @@ LLM output is supplemental only. Deterministic artifacts remain authoritative. T
 
 ## What the tool does not do
 
-The current workflow does not add readiness scoring, readiness dimension assessment, final go/no-go recommendations, LangGraph orchestration, cloud connectors, approval workflows, remediation generation, legal/compliance/privacy certification, or automatic decisions. Optional LLM reviewer notes are supplemental only and do not change deterministic findings.
+The current workflow does not add readiness scoring, readiness dimension assessment, final go/no-go recommendations, cloud connectors, approval workflows, remediation generation, legal/compliance/privacy certification, or automatic decisions. Optional LLM reviewer notes are supplemental only and do not change deterministic findings. Optional LangGraph support changes orchestration only.

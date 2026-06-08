@@ -73,7 +73,7 @@ TRACE_NOTE = (
     "certify legal/privacy/compliance status, or replace human review."
 )
 
-ORCHESTRATION_STEPS = [
+STANDARD_ORCHESTRATION_STEPS = [
     "manifest_loaded",
     "inventory_created",
     "dataset_profiles_created",
@@ -171,7 +171,16 @@ def build_trace(
     review_pack_summary: dict[str, int],
     reviewer_summary_path: Path,
     llm_review_summary: dict[str, Any],
+    orchestration_mode: str = "standard",
+    orchestration_steps: list[str] | None = None,
+    orchestration_implementation: str | None = None,
 ) -> dict[str, Any]:
+    orchestration: dict[str, Any] = {
+        "mode": orchestration_mode,
+        "steps": orchestration_steps or STANDARD_ORCHESTRATION_STEPS,
+    }
+    if orchestration_implementation is not None:
+        orchestration["implementation"] = orchestration_implementation
     return {
         "tool_name": TOOL_NAME,
         "package_version": __version__,
@@ -180,10 +189,7 @@ def build_trace(
         "manifest_path": str(resolved_manifest_path),
         "no_llm": config.no_llm,
         "orchestrator": config.orchestrator,
-        "orchestration": {
-            "mode": "standard",
-            "steps": ORCHESTRATION_STEPS,
-        },
+        "orchestration": orchestration,
         "status": "review_summary_artifacts_created",
         "artifacts_written": list(ORDERED_ARTIFACT_FILE_NAMES),
         "counts": inventory_counts,
@@ -255,6 +261,7 @@ def run_standard_review(config: RunConfig) -> RunResult:
         review_pack_summary=review_pack["summary"],
         reviewer_summary_path=reviewer_summary_path,
         llm_review_summary=build_llm_review_summary(llm_reviewer_notes),
+        orchestration_mode="standard",
     )
     artifacts = ReviewArtifacts(
         inventory=inventory,

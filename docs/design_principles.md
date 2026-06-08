@@ -14,9 +14,13 @@ Each step writes an artifact with a narrow purpose. Reviewers can inspect detail
 
 ## Orchestration separation
 
-The CLI stays thin: it parses arguments, validates simple command-line constraints, builds a run configuration, calls the selected orchestrator, and prints artifact paths and notes. The current supported orchestrator is the deterministic `standard` orchestrator. It owns the ordered workflow from manifest loading through artifact writing and trace creation.
+The CLI stays thin: it parses arguments, validates simple command-line constraints, builds a run configuration, calls the selected orchestrator, and prints artifact paths and notes. The deterministic `standard` orchestrator remains the default and owns the ordered workflow from manifest loading through artifact writing and trace creation.
 
-Future optional orchestrators may be added behind this seam, but deterministic artifacts remain the authority for the local review workflow. Alternative orchestration must not turn the tool into a readiness assessor, approval engine, certification workflow, cloud connector, or automatic decision-maker.
+## Orchestration options
+
+The standard orchestrator is the deterministic default. The optional LangGraph orchestrator is available only when the `graph` extra is installed and runs the same deterministic artifact workflow through a LangGraph state graph. Both orchestrators preserve the same artifact semantics; the trace records which orchestration mode was used.
+
+Deterministic artifacts remain the authority for the local review workflow. Orchestration does not imply agentic authority, readiness assessment, approval authority, certification workflow, cloud connector behavior, or automatic decision-making.
 
 ## Bounded outputs
 
@@ -42,9 +46,9 @@ The workflow supports review. It does not make automatic decisions. Human review
 
 The current CSV profiling uses the Python standard library to keep runtime dependencies small and behavior easy to inspect. Pandas may be useful later for broader data handling, but it is not needed for the current deterministic workflow.
 
-## Why OpenAI is optional and LangGraph is absent
+## Why OpenAI and LangGraph are optional
 
-The default workflow does not require OpenAI and does not use graph orchestration. Keeping OpenAI in the optional `llm` dependency group preserves deterministic local setup by default, and LangGraph is not part of the current workflow.
+The default workflow does not require OpenAI or LangGraph. Keeping OpenAI in the optional `llm` dependency group and LangGraph in the optional `graph` dependency group preserves deterministic local setup by default.
 
 ## Why artifact outputs avoid dumping full datasets
 

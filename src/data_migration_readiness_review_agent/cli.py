@@ -22,6 +22,10 @@ from data_migration_readiness_review_agent.artifact_registry import (
     TRACE_FILE_NAME,
 )
 from data_migration_readiness_review_agent.manifest import ManifestError
+from data_migration_readiness_review_agent.orchestrators.langgraph import (
+    LangGraphDependencyError,
+    run_langgraph_review,
+)
 from data_migration_readiness_review_agent.orchestrators.standard import run_standard_review
 from data_migration_readiness_review_agent.run_config import RunConfig
 from data_migration_readiness_review_agent.run_result import RunResult
@@ -99,11 +103,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--orchestrator",
-        choices=["standard"],
+        choices=["standard", "langgraph"],
         default="standard",
         help=(
-            "Orchestrator mode to record. The deterministic local workflow "
-            "currently supports 'standard'."
+            "Orchestrator mode to use. The deterministic standard workflow is the default; "
+            "the optional langgraph workflow requires the graph extra."
         ),
     )
     return parser
@@ -147,6 +151,10 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> RunResult:
     try:
         if config.orchestrator == "standard":
             return run_standard_review(config)
+        if config.orchestrator == "langgraph":
+            return run_langgraph_review(config)
+    except LangGraphDependencyError as exc:
+        parser.error(str(exc))
     except ManifestError as exc:
         parser.error(str(exc))
     parser.error(f"Unsupported orchestrator: {config.orchestrator}")
