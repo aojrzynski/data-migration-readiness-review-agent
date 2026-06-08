@@ -12,7 +12,9 @@ license = "MIT"
 authors = [
   { name = "Adam Ojrzynski" }
 ]
-dependencies = []
+dependencies = [
+  "PyYAML>=6.0",
+]
 
 [project.scripts]
 data-migration-readiness-review = "data_migration_readiness_review_agent.cli:main"

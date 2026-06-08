@@ -1,16 +1,78 @@
-# Placeholder migration pack manifest for PR #1.
-# The CLI records the pack path but does not parse this file yet.
+migration:
+  name: customer_account_migration
+  description: Example customer and account migration pack for local review.
+  owner: Example Data Migration Team
+  source_system: legacy_crm
+  target_system: new_customer_platform
 
-pack_name: example_migration_pack
-version: 0.1
+datasets:
+  - dataset_id: customers
+    source_path: data/source_customers.csv
+    target_path: data/target_customers.csv
+    key_columns:
+      - customer_id
+    row_count_tolerance: 0
+  - dataset_id: accounts
+    source_path: data/source_accounts.csv
+    target_path: data/target_accounts.csv
+    key_columns:
+      - account_id
+    row_count_tolerance: 0
 
-source_extracts: []
-target_extracts: []
-mapping_files: []
-contract_files: []
-test_results: []
-evidence_files: []
-risks: []
-cutover_notes: []
-rollback_notes: []
-acceptance_evidence: []
+mappings:
+  - mapping_id: customer_mapping
+    dataset_id: customers
+    path: mappings/customer_mapping.csv
+  - mapping_id: account_mapping
+    dataset_id: accounts
+    path: mappings/account_mapping.csv
+
+contracts:
+  - contract_id: customer_contract
+    dataset_id: customers
+    path: contracts/customer_contract.yaml
+  - contract_id: account_contract
+    dataset_id: accounts
+    path: contracts/account_contract.yaml
+
+test_results:
+  - test_result_id: migration_test_results
+    path: tests/test_results.csv
+  - test_result_id: reconciliation_summary
+    path: tests/reconciliation_summary.csv
+
+evidence:
+  - evidence_id: migration_notes
+    evidence_type: migration_notes
+    path: evidence/migration_notes.md
+  - evidence_id: cutover_plan
+    evidence_type: cutover
+    path: evidence/cutover_plan.md
+  - evidence_id: rollback_plan
+    evidence_type: rollback
+    path: evidence/rollback_plan.md
+  - evidence_id: risk_log
+    evidence_type: risk
+    path: evidence/risk_log.md
+  - evidence_id: acceptance_notes
+    evidence_type: acceptance
+    path: evidence/acceptance_notes.md
+
+sensitive_field_hints:
+  - email
+  - phone
+  - date_of_birth
+
+readiness_dimensions:
+  - scope_and_ownership
+  - source_and_target_availability
+  - schema_readiness
+  - mapping_readiness
+  - reconciliation
+  - data_quality
+  - sensitive_data
+  - test_evidence
+  - cutover_planning
+  - rollback_planning
+  - open_risks_and_decisions
+  - human_follow_up_checks
