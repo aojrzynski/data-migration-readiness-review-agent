@@ -9,10 +9,13 @@ from data_migration_readiness_review_agent import __version__
 from data_migration_readiness_review_agent.artifacts import (
     CONTRACT_REVIEW_FILE_NAME,
     DATASET_PROFILES_FILE_NAME,
+    EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     INVENTORY_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
+    SENSITIVE_FIELD_REVIEW_FILE_NAME,
+    TEST_EVIDENCE_REVIEW_FILE_NAME,
     TRACE_FILE_NAME,
     write_json_artifact,
 )
@@ -22,6 +25,10 @@ from data_migration_readiness_review_agent.contract_review import (
     build_contract_review,
 )
 from data_migration_readiness_review_agent.csv_profile import PROFILE_NOTE, build_dataset_profiles
+from data_migration_readiness_review_agent.evidence_coverage import (
+    EVIDENCE_COVERAGE_REVIEW_NOTE,
+    build_evidence_coverage_review,
+)
 from data_migration_readiness_review_agent.inventory import INVENTORY_NOTE, build_inventory
 from data_migration_readiness_review_agent.manifest import ManifestError, load_manifest
 from data_migration_readiness_review_agent.mapping_review import (
@@ -37,16 +44,24 @@ from data_migration_readiness_review_agent.schema_inventory import (
     build_schema_inventory,
     build_schema_summary,
 )
+from data_migration_readiness_review_agent.sensitive_fields import (
+    SENSITIVE_FIELD_REVIEW_NOTE,
+    build_sensitive_field_review,
+)
+from data_migration_readiness_review_agent.test_evidence import (
+    TEST_EVIDENCE_REVIEW_NOTE,
+    build_test_evidence_review,
+)
 
 TRACE_NOTE = (
-    "PR #5 created local review artifacts for inventory, dataset profiles, schema inventory, "
-    "mapping review, contract review, and reconciliation. No sensitive-field detection, "
-    "test evidence review, LLM review, LangGraph orchestration, migration approval, or "
-    "readiness assessment was performed."
+    "PR #6 created local review artifacts for sensitive-field indicators, supplied test "
+    "evidence structure, and expected evidence coverage. No readiness assessment, LLM review, "
+    "LangGraph orchestration, legal/privacy/compliance conclusions, or migration approval was "
+    "performed."
 )
 
 
-ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path]
+ArtifactPaths = tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path, Path]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -83,7 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--orchestrator",
         choices=["standard"],
         default="standard",
-        help="Orchestrator mode to record. PR #5 only supports 'standard'.",
+        help="Orchestrator mode to record. PR #6 only supports 'standard'.",
     )
     return parser
 
@@ -135,6 +150,9 @@ def build_trace(
     mapping_review_summary: dict[str, int],
     contract_review_summary: dict[str, int],
     reconciliation_summary: dict[str, int],
+    sensitive_field_summary: dict[str, int],
+    test_evidence_summary: dict[str, int],
+    evidence_coverage_summary: dict[str, int],
 ) -> dict[str, Any]:
     return {
         "tool_name": TOOL_NAME,
@@ -144,7 +162,7 @@ def build_trace(
         "manifest_path": str(manifest_path),
         "no_llm": no_llm,
         "orchestrator": orchestrator,
-        "status": "reconciliation_artifacts_created",
+        "status": "evidence_review_artifacts_created",
         "artifacts_written": [
             INVENTORY_FILE_NAME,
             DATASET_PROFILES_FILE_NAME,
@@ -152,6 +170,9 @@ def build_trace(
             MAPPING_REVIEW_FILE_NAME,
             CONTRACT_REVIEW_FILE_NAME,
             RECONCILIATION_RESULTS_FILE_NAME,
+            SENSITIVE_FIELD_REVIEW_FILE_NAME,
+            TEST_EVIDENCE_REVIEW_FILE_NAME,
+            EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
             TRACE_FILE_NAME,
         ],
         "counts": inventory_counts,
@@ -160,6 +181,9 @@ def build_trace(
         "mapping_review_summary": mapping_review_summary,
         "contract_review_summary": contract_review_summary,
         "reconciliation_summary": reconciliation_summary,
+        "sensitive_field_summary": sensitive_field_summary,
+        "test_evidence_summary": test_evidence_summary,
+        "evidence_coverage_summary": evidence_coverage_summary,
         "notes": [
             INVENTORY_NOTE,
             PROFILE_NOTE,
@@ -167,6 +191,9 @@ def build_trace(
             MAPPING_REVIEW_NOTE,
             CONTRACT_REVIEW_NOTE,
             RECONCILIATION_NOTE,
+            SENSITIVE_FIELD_REVIEW_NOTE,
+            TEST_EVIDENCE_REVIEW_NOTE,
+            EVIDENCE_COVERAGE_REVIEW_NOTE,
             TRACE_NOTE,
         ],
     }
@@ -185,6 +212,15 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         reconciliation_results = build_reconciliation_results(
             loaded_manifest, dataset_profiles, schema_inventory, mapping_review
         )
+        sensitive_field_review = build_sensitive_field_review(
+            loaded_manifest,
+            schema_inventory,
+            dataset_profiles,
+            mapping_review,
+            contract_review,
+        )
+        test_evidence_review = build_test_evidence_review(loaded_manifest)
+        evidence_coverage_review = build_evidence_coverage_review(loaded_manifest)
     except ManifestError as exc:
         parser.error(str(exc))
 
@@ -195,14 +231,21 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
     schema_inventory_path = write_json_artifact(
         schema_inventory, output_dir, SCHEMA_INVENTORY_FILE_NAME
     )
-    mapping_review_path = write_json_artifact(
-        mapping_review, output_dir, MAPPING_REVIEW_FILE_NAME
-    )
+    mapping_review_path = write_json_artifact(mapping_review, output_dir, MAPPING_REVIEW_FILE_NAME)
     contract_review_path = write_json_artifact(
         contract_review, output_dir, CONTRACT_REVIEW_FILE_NAME
     )
     reconciliation_results_path = write_json_artifact(
         reconciliation_results, output_dir, RECONCILIATION_RESULTS_FILE_NAME
+    )
+    sensitive_field_review_path = write_json_artifact(
+        sensitive_field_review, output_dir, SENSITIVE_FIELD_REVIEW_FILE_NAME
+    )
+    test_evidence_review_path = write_json_artifact(
+        test_evidence_review, output_dir, TEST_EVIDENCE_REVIEW_FILE_NAME
+    )
+    evidence_coverage_review_path = write_json_artifact(
+        evidence_coverage_review, output_dir, EVIDENCE_COVERAGE_REVIEW_FILE_NAME
     )
     trace = build_trace(
         pack_path=pack_path,
@@ -216,6 +259,9 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         mapping_review_summary=mapping_review["summary"],
         contract_review_summary=contract_review["summary"],
         reconciliation_summary=reconciliation_results["summary"],
+        sensitive_field_summary=sensitive_field_review["summary"],
+        test_evidence_summary=test_evidence_review["summary"],
+        evidence_coverage_summary=evidence_coverage_review["summary"],
     )
     trace_path = write_json_artifact(trace, output_dir, TRACE_FILE_NAME)
     return (
@@ -225,6 +271,9 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> ArtifactPa
         mapping_review_path,
         contract_review_path,
         reconciliation_results_path,
+        sensitive_field_review_path,
+        test_evidence_review_path,
+        evidence_coverage_review_path,
         trace_path,
     )
 
@@ -239,6 +288,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         mapping_review_path,
         contract_review_path,
         reconciliation_results_path,
+        sensitive_field_review_path,
+        test_evidence_review_path,
+        evidence_coverage_review_path,
         trace_path,
     ) = run(args, parser)
     print(f"Wrote migration inventory: {inventory_path}")
@@ -247,12 +299,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"Wrote mapping review: {mapping_review_path}")
     print(f"Wrote contract review: {contract_review_path}")
     print(f"Wrote reconciliation results: {reconciliation_results_path}")
+    print(f"Wrote sensitive field review: {sensitive_field_review_path}")
+    print(f"Wrote test evidence review: {test_evidence_review_path}")
+    print(f"Wrote evidence coverage review: {evidence_coverage_review_path}")
     print(f"Wrote migration trace: {trace_path}")
     print(INVENTORY_NOTE)
     print(PROFILE_NOTE)
     print(MAPPING_REVIEW_NOTE)
     print(CONTRACT_REVIEW_NOTE)
     print(RECONCILIATION_NOTE)
+    print(SENSITIVE_FIELD_REVIEW_NOTE)
+    print(TEST_EVIDENCE_REVIEW_NOTE)
+    print(EVIDENCE_COVERAGE_REVIEW_NOTE)
     return 0
 
 

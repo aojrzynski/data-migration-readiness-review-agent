@@ -10,6 +10,9 @@ SCHEMA_INVENTORY_FILE_NAME = "schema_inventory.json"
 MAPPING_REVIEW_FILE_NAME = "mapping_review.json"
 CONTRACT_REVIEW_FILE_NAME = "contract_review.json"
 RECONCILIATION_RESULTS_FILE_NAME = "reconciliation_results.json"
+SENSITIVE_FIELD_REVIEW_FILE_NAME = "sensitive_field_review.json"
+TEST_EVIDENCE_REVIEW_FILE_NAME = "test_evidence_review.json"
+EVIDENCE_COVERAGE_REVIEW_FILE_NAME = "evidence_coverage_review.json"
 TRACE_FILE_NAME = "migration_readiness_trace.json"
 
 

@@ -105,7 +105,9 @@ def write_referenced_files(pack_path: Path) -> None:
             "    type: date\n"
             "    required: false\n"
         ),
-        "tests/test_results.csv": "test_id,status\nexample,not_assessed\n",
+        "tests/test_results.csv": (
+            "test_id,status,message\nexample_test,passed,Example migration test passed\n"
+        ),
         "evidence/migration_notes.md": "# Notes\n",
     }
     for relative_path, content in files.items():
