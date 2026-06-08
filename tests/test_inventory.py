@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from conftest import make_pack, read_json, run_cli
 from data_migration_readiness_review_agent.artifacts import INVENTORY_FILE_NAME
+from helpers import make_pack, read_json, run_cli
 
 
 def test_inventory_includes_metadata_datasets_referenced_files_and_counts(tmp_path: Path) -> None:

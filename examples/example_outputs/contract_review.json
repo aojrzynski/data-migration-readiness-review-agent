@@ -1,0 +1,268 @@
+{
+  "artifact_type": "contract_review",
+  "contract_reviews": [
+    {
+      "contract_fields": [
+        {
+          "checks": [
+            {
+              "check_id": "contract:customer_contract:field:customer_id:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:customer_contract:field:customer_id:required_null_count",
+              "message": "Required contract field has no profiled target nulls.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:customer_contract:field:customer_id:type_check",
+              "message": "Expected type 'integer' is compatible with target type 'integer'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "integer",
+          "name": "customer_id",
+          "required": true,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "integer",
+          "target_null_count": 0,
+          "warnings": []
+        },
+        {
+          "checks": [
+            {
+              "check_id": "contract:customer_contract:field:email:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:customer_contract:field:email:required_null_count",
+              "message": "Required contract field has no profiled target nulls.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:customer_contract:field:email:type_check",
+              "message": "Expected type 'text' is compatible with target type 'text'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "text",
+          "name": "email",
+          "required": true,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "text",
+          "target_null_count": 0,
+          "warnings": []
+        },
+        {
+          "checks": [
+            {
+              "check_id": "contract:customer_contract:field:phone:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:customer_contract:field:phone:type_check",
+              "message": "Expected type 'text' is compatible with target type 'text'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "text",
+          "name": "phone",
+          "required": false,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "text",
+          "target_null_count": 0,
+          "warnings": []
+        },
+        {
+          "checks": [
+            {
+              "check_id": "contract:customer_contract:field:date_of_birth:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:customer_contract:field:date_of_birth:type_check",
+              "message": "Expected type 'date' is compatible with target type 'date'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "date",
+          "name": "date_of_birth",
+          "required": false,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "date",
+          "target_null_count": 1,
+          "warnings": []
+        }
+      ],
+      "contract_id": "customer_contract",
+      "contract_id_from_file": "customer_contract",
+      "dataset_id": "customers",
+      "dataset_id_from_file": "customers",
+      "field_count": 4,
+      "missing_required_target_fields": [],
+      "path": "contracts/customer_contract.yaml",
+      "required_field_count": 2,
+      "required_target_fields_with_nulls": [],
+      "status": "reviewed",
+      "target_columns": [
+        "customer_id",
+        "email",
+        "phone",
+        "date_of_birth"
+      ],
+      "target_columns_not_in_contract": [],
+      "type_mismatch_warnings": [],
+      "warnings": []
+    },
+    {
+      "contract_fields": [
+        {
+          "checks": [
+            {
+              "check_id": "contract:account_contract:field:account_id:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:account_id:required_null_count",
+              "message": "Required contract field has no profiled target nulls.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:account_id:type_check",
+              "message": "Expected type 'integer' is compatible with target type 'integer'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "integer",
+          "name": "account_id",
+          "required": true,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "integer",
+          "target_null_count": 0,
+          "warnings": []
+        },
+        {
+          "checks": [
+            {
+              "check_id": "contract:account_contract:field:customer_id:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:customer_id:required_null_count",
+              "message": "Required contract field has no profiled target nulls.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:customer_id:type_check",
+              "message": "Expected type 'integer' is compatible with target type 'integer'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "integer",
+          "name": "customer_id",
+          "required": true,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "integer",
+          "target_null_count": 0,
+          "warnings": []
+        },
+        {
+          "checks": [
+            {
+              "check_id": "contract:account_contract:field:status:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:status:required_null_count",
+              "message": "Required contract field has no profiled target nulls.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:status:type_check",
+              "message": "Expected type 'text' is compatible with target type 'text'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "text",
+          "name": "status",
+          "required": true,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "text",
+          "target_null_count": 0,
+          "warnings": []
+        },
+        {
+          "checks": [
+            {
+              "check_id": "contract:account_contract:field:balance:target_present",
+              "message": "Contract field is present in target schema.",
+              "status": "passed_check"
+            },
+            {
+              "check_id": "contract:account_contract:field:balance:type_check",
+              "message": "Expected type 'decimal' is compatible with target type 'decimal'.",
+              "status": "passed_check"
+            }
+          ],
+          "expected_type": "decimal",
+          "name": "balance",
+          "required": false,
+          "status": "passed_check",
+          "target_column_present": true,
+          "target_inferred_type": "decimal",
+          "target_null_count": 0,
+          "warnings": []
+        }
+      ],
+      "contract_id": "account_contract",
+      "contract_id_from_file": "account_contract",
+      "dataset_id": "accounts",
+      "dataset_id_from_file": "accounts",
+      "field_count": 4,
+      "missing_required_target_fields": [],
+      "path": "contracts/account_contract.yaml",
+      "required_field_count": 3,
+      "required_target_fields_with_nulls": [],
+      "status": "reviewed",
+      "target_columns": [
+        "account_id",
+        "customer_id",
+        "status",
+        "balance"
+      ],
+      "target_columns_not_in_contract": [],
+      "type_mismatch_warnings": [],
+      "warnings": []
+    }
+  ],
+  "notes": [
+    "PR #4 reviews contract files against profiled target schemas only. It does not run reconciliation, call an LLM, or assess readiness."
+  ],
+  "package_version": "0.1.0",
+  "status": "contract_review_created",
+  "summary": {
+    "contract_fields_reviewed": 8,
+    "contract_files_failed_checks": 0,
+    "contract_files_with_gaps": 0,
+    "contracts_expected": 2,
+    "contracts_reviewed": 2,
+    "missing_required_target_fields": 0,
+    "required_target_fields_with_nulls": 0,
+    "type_mismatch_warnings": 0
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}

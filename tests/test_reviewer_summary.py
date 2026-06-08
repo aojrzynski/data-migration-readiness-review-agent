@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from conftest import make_pack, read_json, run_cli
 from data_migration_readiness_review_agent.artifacts import (
     REVIEW_PACK_FILE_NAME,
     REVIEWER_SUMMARY_FILE_NAME,
@@ -14,6 +13,7 @@ from data_migration_readiness_review_agent.safe_language import (
     assert_safe_generated_text,
     find_forbidden_terms,
 )
+from helpers import make_pack, read_json, run_cli
 
 
 def run_and_read_summary(tmp_path: Path, pack_path: Path) -> tuple[str, dict[str, object]]:

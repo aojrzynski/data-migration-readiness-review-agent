@@ -1,0 +1,304 @@
+{
+  "artifact_type": "dataset_profiles",
+  "datasets": [
+    {
+      "dataset_id": "customers",
+      "key_columns": [
+        "customer_id"
+      ],
+      "source": {
+        "column_count": 4,
+        "columns": [
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "integer",
+            "name": "customer_id",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 1
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "text",
+            "name": "email",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 2
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "text",
+            "name": "phone",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 3
+          },
+          {
+            "distinct_count": 1,
+            "distinct_count_capped": false,
+            "inferred_type": "date",
+            "name": "date_of_birth",
+            "non_null_count": 1,
+            "null_count": 1,
+            "null_rate": 0.5,
+            "position": 4
+          }
+        ],
+        "duplicate_key_count": 0,
+        "format": "csv",
+        "key_columns": [
+          "customer_id"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/source_customers.csv",
+        "preview_rows": [
+          {
+            "customer_id": "1",
+            "date_of_birth": "1980-01-01",
+            "email": "example@example.com",
+            "phone": "555-0100"
+          },
+          {
+            "customer_id": "2",
+            "date_of_birth": "",
+            "email": "second@example.com",
+            "phone": "555-0101"
+          }
+        ],
+        "row_count": 2,
+        "status": "profile_created",
+        "warnings": []
+      },
+      "target": {
+        "column_count": 4,
+        "columns": [
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "integer",
+            "name": "customer_id",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 1
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "text",
+            "name": "email",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 2
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "text",
+            "name": "phone",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 3
+          },
+          {
+            "distinct_count": 1,
+            "distinct_count_capped": false,
+            "inferred_type": "date",
+            "name": "date_of_birth",
+            "non_null_count": 1,
+            "null_count": 1,
+            "null_rate": 0.5,
+            "position": 4
+          }
+        ],
+        "duplicate_key_count": 0,
+        "format": "csv",
+        "key_columns": [
+          "customer_id"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/target_customers.csv",
+        "preview_rows": [
+          {
+            "customer_id": "1",
+            "date_of_birth": "1980-01-01",
+            "email": "example@example.com",
+            "phone": "555-0100"
+          },
+          {
+            "customer_id": "2",
+            "date_of_birth": "",
+            "email": "second@example.com",
+            "phone": "555-0101"
+          }
+        ],
+        "row_count": 2,
+        "status": "profile_created",
+        "warnings": []
+      }
+    },
+    {
+      "dataset_id": "accounts",
+      "key_columns": [
+        "account_id"
+      ],
+      "source": {
+        "column_count": 4,
+        "columns": [
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "integer",
+            "name": "account_id",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 1
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "integer",
+            "name": "customer_id",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 2
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "text",
+            "name": "status",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 3
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "decimal",
+            "name": "balance",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 4
+          }
+        ],
+        "duplicate_key_count": 0,
+        "format": "csv",
+        "key_columns": [
+          "account_id"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/source_accounts.csv",
+        "preview_rows": [
+          {
+            "account_id": "10",
+            "balance": "100.50",
+            "customer_id": "1",
+            "status": "active"
+          },
+          {
+            "account_id": "11",
+            "balance": "0",
+            "customer_id": "2",
+            "status": "inactive"
+          }
+        ],
+        "row_count": 2,
+        "status": "profile_created",
+        "warnings": []
+      },
+      "target": {
+        "column_count": 4,
+        "columns": [
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "integer",
+            "name": "account_id",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 1
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "integer",
+            "name": "customer_id",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 2
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "text",
+            "name": "status",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 3
+          },
+          {
+            "distinct_count": 2,
+            "distinct_count_capped": false,
+            "inferred_type": "decimal",
+            "name": "balance",
+            "non_null_count": 2,
+            "null_count": 0,
+            "null_rate": 0.0,
+            "position": 4
+          }
+        ],
+        "duplicate_key_count": 0,
+        "format": "csv",
+        "key_columns": [
+          "account_id"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/target_accounts.csv",
+        "preview_rows": [
+          {
+            "account_id": "10",
+            "balance": "100.50",
+            "customer_id": "1",
+            "status": "active"
+          },
+          {
+            "account_id": "11",
+            "balance": "0",
+            "customer_id": "2",
+            "status": "inactive"
+          }
+        ],
+        "row_count": 2,
+        "status": "profile_created",
+        "warnings": []
+      }
+    }
+  ],
+  "notes": [
+    "PR #3 profiles CSV datasets only. It does not compare mapped fields, run reconciliation, call an LLM, or assess readiness. Distinct counts are capped at 1000 stored values per column."
+  ],
+  "package_version": "0.1.0",
+  "profile_scope": "csv_dataset_headers_and_column_statistics",
+  "status": "profile_created",
+  "tool_name": "Data Migration Readiness Review Agent"
+}

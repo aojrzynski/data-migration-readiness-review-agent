@@ -1,0 +1,266 @@
+{
+  "artifact_type": "migration_inventory",
+  "counts": {
+    "datasets": 2,
+    "referenced_files": 15,
+    "referenced_files_missing": 0,
+    "referenced_files_present": 15
+  },
+  "datasets": [
+    {
+      "dataset_id": "customers",
+      "key_columns": [
+        "customer_id"
+      ],
+      "row_count_tolerance": 0,
+      "source_path": "data/source_customers.csv",
+      "status": "not_assessed",
+      "target_path": "data/target_customers.csv"
+    },
+    {
+      "dataset_id": "accounts",
+      "key_columns": [
+        "account_id"
+      ],
+      "row_count_tolerance": 0,
+      "source_path": "data/source_accounts.csv",
+      "status": "not_assessed",
+      "target_path": "data/target_accounts.csv"
+    }
+  ],
+  "gaps": [],
+  "migration": {
+    "description": "Example customer and account migration pack for local review.",
+    "name": "customer_account_migration",
+    "owner": "Example Data Migration Team",
+    "source_system": "legacy_crm",
+    "target_system": "new_customer_platform"
+  },
+  "notes": [
+    "PR #3 includes manifest and file inventory before dataset profiling. It does not compare records, run reconciliation, call an LLM, or assess readiness."
+  ],
+  "pack": {
+    "manifest_file_name": "manifest.yaml",
+    "manifest_path": "/workspace/data-migration-readiness-review-agent/examples/migration_pack/manifest.yaml",
+    "pack_path": "/workspace/data-migration-readiness-review-agent/examples/migration_pack"
+  },
+  "package_version": "0.1.0",
+  "readiness_dimensions": [
+    "scope_and_ownership",
+    "source_and_target_availability",
+    "schema_readiness",
+    "mapping_readiness",
+    "reconciliation",
+    "data_quality",
+    "sensitive_data",
+    "test_evidence",
+    "cutover_planning",
+    "rollback_planning",
+    "open_risks_and_decisions",
+    "human_follow_up_checks"
+  ],
+  "referenced_files": [
+    {
+      "category": "dataset_source",
+      "dataset_id": "customers",
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "data/source_customers.csv",
+      "reference_id": "dataset:customers:source",
+      "resolved_relative_path": "data/source_customers.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 111,
+      "status": "evidence_present"
+    },
+    {
+      "category": "dataset_target",
+      "dataset_id": "customers",
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "data/target_customers.csv",
+      "reference_id": "dataset:customers:target",
+      "resolved_relative_path": "data/target_customers.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 111,
+      "status": "evidence_present"
+    },
+    {
+      "category": "dataset_source",
+      "dataset_id": "accounts",
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "data/source_accounts.csv",
+      "reference_id": "dataset:accounts:source",
+      "resolved_relative_path": "data/source_accounts.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 73,
+      "status": "evidence_present"
+    },
+    {
+      "category": "dataset_target",
+      "dataset_id": "accounts",
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "data/target_accounts.csv",
+      "reference_id": "dataset:accounts:target",
+      "resolved_relative_path": "data/target_accounts.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 73,
+      "status": "evidence_present"
+    },
+    {
+      "category": "mapping",
+      "dataset_id": "customers",
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "mappings/customer_mapping.csv",
+      "reference_id": "mapping:customer_mapping",
+      "resolved_relative_path": "mappings/customer_mapping.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 102,
+      "status": "evidence_present"
+    },
+    {
+      "category": "mapping",
+      "dataset_id": "accounts",
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "mappings/account_mapping.csv",
+      "reference_id": "mapping:account_mapping",
+      "resolved_relative_path": "mappings/account_mapping.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 102,
+      "status": "evidence_present"
+    },
+    {
+      "category": "contract",
+      "dataset_id": "customers",
+      "exists": true,
+      "extension": ".yaml",
+      "is_file": true,
+      "path": "contracts/customer_contract.yaml",
+      "reference_id": "contract:customer_contract",
+      "resolved_relative_path": "contracts/customer_contract.yaml",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 280,
+      "status": "evidence_present"
+    },
+    {
+      "category": "contract",
+      "dataset_id": "accounts",
+      "exists": true,
+      "extension": ".yaml",
+      "is_file": true,
+      "path": "contracts/account_contract.yaml",
+      "reference_id": "contract:account_contract",
+      "resolved_relative_path": "contracts/account_contract.yaml",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 283,
+      "status": "evidence_present"
+    },
+    {
+      "category": "test_result",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "tests/test_results.csv",
+      "reference_id": "test_result:migration_test_results",
+      "resolved_relative_path": "tests/test_results.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 73,
+      "status": "evidence_present"
+    },
+    {
+      "category": "test_result",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".csv",
+      "is_file": true,
+      "path": "tests/reconciliation_summary.csv",
+      "reference_id": "test_result:reconciliation_summary",
+      "resolved_relative_path": "tests/reconciliation_summary.csv",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 69,
+      "status": "evidence_present"
+    },
+    {
+      "category": "evidence_migration_notes",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".md",
+      "is_file": true,
+      "path": "evidence/migration_notes.md",
+      "reference_id": "evidence:migration_notes",
+      "resolved_relative_path": "evidence/migration_notes.md",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 67,
+      "status": "evidence_present"
+    },
+    {
+      "category": "evidence_cutover",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".md",
+      "is_file": true,
+      "path": "evidence/cutover_plan.md",
+      "reference_id": "evidence:cutover_plan",
+      "resolved_relative_path": "evidence/cutover_plan.md",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 63,
+      "status": "evidence_present"
+    },
+    {
+      "category": "evidence_rollback",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".md",
+      "is_file": true,
+      "path": "evidence/rollback_plan.md",
+      "reference_id": "evidence:rollback_plan",
+      "resolved_relative_path": "evidence/rollback_plan.md",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 64,
+      "status": "evidence_present"
+    },
+    {
+      "category": "evidence_risk",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".md",
+      "is_file": true,
+      "path": "evidence/risk_log.md",
+      "reference_id": "evidence:risk_log",
+      "resolved_relative_path": "evidence/risk_log.md",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 63,
+      "status": "evidence_present"
+    },
+    {
+      "category": "evidence_acceptance",
+      "dataset_id": null,
+      "exists": true,
+      "extension": ".md",
+      "is_file": true,
+      "path": "evidence/acceptance_notes.md",
+      "reference_id": "evidence:acceptance_notes",
+      "resolved_relative_path": "evidence/acceptance_notes.md",
+      "safe_status": "referenced_file_present",
+      "size_bytes": 68,
+      "status": "evidence_present"
+    }
+  ],
+  "sensitive_field_hints": [
+    "email",
+    "phone",
+    "date_of_birth"
+  ],
+  "status": "inventory_created",
+  "tool_name": "Data Migration Readiness Review Agent"
+}

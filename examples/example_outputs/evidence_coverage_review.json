@@ -1,0 +1,115 @@
+{
+  "artifact_type": "evidence_coverage_review",
+  "expected_evidence_types": [
+    {
+      "evidence_type": "migration_notes",
+      "file_details": [
+        {
+          "file_size_bytes": 67,
+          "format": "markdown",
+          "path": "evidence/migration_notes.md",
+          "status": "evidence_present"
+        }
+      ],
+      "files_missing": 0,
+      "files_present": 1,
+      "items_declared": 1,
+      "paths": [
+        "evidence/migration_notes.md"
+      ],
+      "status": "evidence_present",
+      "warnings": []
+    },
+    {
+      "evidence_type": "cutover",
+      "file_details": [
+        {
+          "file_size_bytes": 63,
+          "format": "markdown",
+          "path": "evidence/cutover_plan.md",
+          "status": "evidence_present"
+        }
+      ],
+      "files_missing": 0,
+      "files_present": 1,
+      "items_declared": 1,
+      "paths": [
+        "evidence/cutover_plan.md"
+      ],
+      "status": "evidence_present",
+      "warnings": []
+    },
+    {
+      "evidence_type": "rollback",
+      "file_details": [
+        {
+          "file_size_bytes": 64,
+          "format": "markdown",
+          "path": "evidence/rollback_plan.md",
+          "status": "evidence_present"
+        }
+      ],
+      "files_missing": 0,
+      "files_present": 1,
+      "items_declared": 1,
+      "paths": [
+        "evidence/rollback_plan.md"
+      ],
+      "status": "evidence_present",
+      "warnings": []
+    },
+    {
+      "evidence_type": "risk",
+      "file_details": [
+        {
+          "file_size_bytes": 63,
+          "format": "markdown",
+          "path": "evidence/risk_log.md",
+          "status": "evidence_present"
+        }
+      ],
+      "files_missing": 0,
+      "files_present": 1,
+      "items_declared": 1,
+      "paths": [
+        "evidence/risk_log.md"
+      ],
+      "status": "evidence_present",
+      "warnings": []
+    },
+    {
+      "evidence_type": "acceptance",
+      "file_details": [
+        {
+          "file_size_bytes": 68,
+          "format": "markdown",
+          "path": "evidence/acceptance_notes.md",
+          "status": "evidence_present"
+        }
+      ],
+      "files_missing": 0,
+      "files_present": 1,
+      "items_declared": 1,
+      "paths": [
+        "evidence/acceptance_notes.md"
+      ],
+      "status": "evidence_present",
+      "warnings": []
+    }
+  ],
+  "extra_evidence_types": [],
+  "notes": [
+    "PR #6 reviews evidence coverage only. It records declared evidence types and file presence without judging document quality."
+  ],
+  "package_version": "0.1.0",
+  "status": "evidence_coverage_review_created",
+  "summary": {
+    "evidence_files_missing": 0,
+    "evidence_files_present": 5,
+    "evidence_types_missing": 0,
+    "evidence_types_present": 5,
+    "evidence_types_with_gaps": 0,
+    "expected_evidence_types": 5
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}

@@ -1,0 +1,67 @@
+{
+  "artifact_type": "test_evidence_review",
+  "notes": [
+    "PR #6 reviews supplied test evidence structure only. It records supplied files without deciding launch suitability."
+  ],
+  "package_version": "0.1.0",
+  "status": "test_evidence_review_created",
+  "summary": {
+    "csv_test_rows_reviewed": 2,
+    "failed_like_rows": 0,
+    "test_result_files_with_gaps": 0,
+    "test_results_expected": 2,
+    "test_results_reviewed": 2,
+    "warning_like_rows": 0
+  },
+  "test_results": [
+    {
+      "failed_like_count": 0,
+      "failed_or_warning_samples": [],
+      "file_size_bytes": 73,
+      "format": "csv",
+      "headers": [
+        "test_id",
+        "status",
+        "message"
+      ],
+      "id_column": "test_id",
+      "message_column": "message",
+      "passed_like_count": 1,
+      "path": "tests/test_results.csv",
+      "row_count": 1,
+      "status": "reviewed",
+      "status_column": "status",
+      "status_counts": {
+        "passed": 1
+      },
+      "test_result_id": "migration_test_results",
+      "warning_like_count": 0,
+      "warnings": []
+    },
+    {
+      "failed_like_count": 0,
+      "failed_or_warning_samples": [],
+      "file_size_bytes": 69,
+      "format": "csv",
+      "headers": [
+        "check",
+        "status",
+        "message"
+      ],
+      "id_column": "check",
+      "message_column": "message",
+      "passed_like_count": 1,
+      "path": "tests/reconciliation_summary.csv",
+      "row_count": 1,
+      "status": "reviewed",
+      "status_column": "status",
+      "status_counts": {
+        "passed": 1
+      },
+      "test_result_id": "reconciliation_summary",
+      "warning_like_count": 0,
+      "warnings": []
+    }
+  ],
+  "tool_name": "Data Migration Readiness Review Agent"
+}

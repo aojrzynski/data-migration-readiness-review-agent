@@ -1,0 +1,101 @@
+{
+  "artifact_type": "schema_inventory",
+  "datasets": [
+    {
+      "dataset_id": "customers",
+      "key_columns": [
+        "customer_id"
+      ],
+      "schema_overlap": {
+        "shared_columns": [
+          "customer_id",
+          "email",
+          "phone",
+          "date_of_birth"
+        ],
+        "source_only_columns": [],
+        "target_only_columns": []
+      },
+      "source": {
+        "column_count": 4,
+        "columns": [
+          "customer_id",
+          "email",
+          "phone",
+          "date_of_birth"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/source_customers.csv",
+        "status": "profile_created",
+        "warnings": []
+      },
+      "status": "not_assessed",
+      "target": {
+        "column_count": 4,
+        "columns": [
+          "customer_id",
+          "email",
+          "phone",
+          "date_of_birth"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/target_customers.csv",
+        "status": "profile_created",
+        "warnings": []
+      }
+    },
+    {
+      "dataset_id": "accounts",
+      "key_columns": [
+        "account_id"
+      ],
+      "schema_overlap": {
+        "shared_columns": [
+          "account_id",
+          "customer_id",
+          "status",
+          "balance"
+        ],
+        "source_only_columns": [],
+        "target_only_columns": []
+      },
+      "source": {
+        "column_count": 4,
+        "columns": [
+          "account_id",
+          "customer_id",
+          "status",
+          "balance"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/source_accounts.csv",
+        "status": "profile_created",
+        "warnings": []
+      },
+      "status": "not_assessed",
+      "target": {
+        "column_count": 4,
+        "columns": [
+          "account_id",
+          "customer_id",
+          "status",
+          "balance"
+        ],
+        "key_columns_present": true,
+        "missing_key_columns": [],
+        "path": "data/target_accounts.csv",
+        "status": "profile_created",
+        "warnings": []
+      }
+    }
+  ],
+  "notes": [
+    "PR #3 inventories source and target schemas. It does not validate mappings or contracts and does not assess readiness."
+  ],
+  "package_version": "0.1.0",
+  "status": "schema_inventory_created",
+  "tool_name": "Data Migration Readiness Review Agent"
+}

@@ -1,0 +1,152 @@
+{
+  "artifact_type": "sensitive_field_review",
+  "datasets": [
+    {
+      "contract_mentions": [
+        {
+          "field_name": "email",
+          "indicator_type": "manifest_hint",
+          "matched_indicator": "email"
+        },
+        {
+          "field_name": "phone",
+          "indicator_type": "manifest_hint",
+          "matched_indicator": "phone"
+        },
+        {
+          "field_name": "date_of_birth",
+          "indicator_type": "manifest_hint",
+          "matched_indicator": "date_of_birth"
+        }
+      ],
+      "dataset_id": "customers",
+      "mapping_mentions": [
+        {
+          "indicator_type": "manifest_hint",
+          "matched_indicator": "email",
+          "source_field": "email",
+          "target_field": "email"
+        },
+        {
+          "indicator_type": "manifest_hint",
+          "matched_indicator": "phone",
+          "source_field": "phone",
+          "target_field": "phone"
+        },
+        {
+          "indicator_type": "manifest_hint",
+          "matched_indicator": "date_of_birth",
+          "source_field": "date_of_birth",
+          "target_field": "date_of_birth"
+        }
+      ],
+      "source": {
+        "flagged_column_count": 3,
+        "flagged_columns": [
+          {
+            "column_name": "email",
+            "confidence": "high",
+            "evidence": [
+              "column_name_match"
+            ],
+            "indicator_type": "manifest_hint",
+            "matched_indicator": "email"
+          },
+          {
+            "column_name": "phone",
+            "confidence": "high",
+            "evidence": [
+              "column_name_match"
+            ],
+            "indicator_type": "manifest_hint",
+            "matched_indicator": "phone"
+          },
+          {
+            "column_name": "date_of_birth",
+            "confidence": "high",
+            "evidence": [
+              "column_name_match"
+            ],
+            "indicator_type": "manifest_hint",
+            "matched_indicator": "date_of_birth"
+          }
+        ],
+        "path": "data/source_customers.csv",
+        "status": "reviewed",
+        "warnings": []
+      },
+      "status": "reviewed",
+      "target": {
+        "flagged_column_count": 3,
+        "flagged_columns": [
+          {
+            "column_name": "email",
+            "confidence": "high",
+            "evidence": [
+              "column_name_match"
+            ],
+            "indicator_type": "manifest_hint",
+            "matched_indicator": "email"
+          },
+          {
+            "column_name": "phone",
+            "confidence": "high",
+            "evidence": [
+              "column_name_match"
+            ],
+            "indicator_type": "manifest_hint",
+            "matched_indicator": "phone"
+          },
+          {
+            "column_name": "date_of_birth",
+            "confidence": "high",
+            "evidence": [
+              "column_name_match"
+            ],
+            "indicator_type": "manifest_hint",
+            "matched_indicator": "date_of_birth"
+          }
+        ],
+        "path": "data/target_customers.csv",
+        "status": "reviewed",
+        "warnings": []
+      },
+      "warnings": []
+    },
+    {
+      "contract_mentions": [],
+      "dataset_id": "accounts",
+      "mapping_mentions": [],
+      "source": {
+        "flagged_column_count": 0,
+        "flagged_columns": [],
+        "path": "data/source_accounts.csv",
+        "status": "reviewed",
+        "warnings": []
+      },
+      "status": "reviewed",
+      "target": {
+        "flagged_column_count": 0,
+        "flagged_columns": [],
+        "path": "data/target_accounts.csv",
+        "status": "reviewed",
+        "warnings": []
+      },
+      "warnings": []
+    }
+  ],
+  "notes": [
+    "PR #6 reviews sensitive-field indicators only. It does not classify legal/privacy status or decide whether data handling is acceptable."
+  ],
+  "package_version": "0.1.0",
+  "review_scope": "column_name_indicators",
+  "status": "sensitive_field_review_created",
+  "summary": {
+    "datasets_reviewed": 2,
+    "datasets_with_sensitive_indicators": 1,
+    "files_with_gaps": 0,
+    "flagged_source_columns": 3,
+    "flagged_target_columns": 3
+  },
+  "tool_name": "Data Migration Readiness Review Agent"
+}
