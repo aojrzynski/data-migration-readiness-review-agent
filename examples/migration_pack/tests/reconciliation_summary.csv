@@ -1,2 +1,2 @@
-check,status
-row_count,not_assessed
+check,status,message
+row_count,passed,Example row count check passed

@@ -374,17 +374,12 @@ def build_reconciliation_summary(datasets: list[dict[str, Any]]) -> dict[str, in
         "datasets_reconciled": sum(
             1 for dataset in datasets if dataset["status"] in {"reviewed", "warning"}
         ),
-        "datasets_with_gaps": sum(
-            1 for dataset in datasets if dataset["status"] == "gap_found"
-        ),
+        "datasets_with_gaps": sum(1 for dataset in datasets if dataset["status"] == "gap_found"),
         "row_count_failures": sum(
-            1
-            for dataset in datasets
-            if dataset["row_count_check"]["status"] == "failed_check"
+            1 for dataset in datasets if dataset["row_count_check"]["status"] == "failed_check"
         ),
         "missing_source_keys_in_target": sum(
-            dataset["key_overlap"]["missing_source_keys_in_target_count"]
-            for dataset in datasets
+            dataset["key_overlap"]["missing_source_keys_in_target_count"] for dataset in datasets
         ),
         "unexpected_target_keys": sum(
             dataset["key_overlap"]["unexpected_target_keys_count"] for dataset in datasets

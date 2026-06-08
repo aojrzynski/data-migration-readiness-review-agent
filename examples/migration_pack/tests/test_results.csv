@@ -1,2 +1,2 @@
-test_id,status
-example_test,passed
+test_id,status,message
+example_test,passed,Example migration test passed

@@ -10,10 +10,13 @@ from data_migration_readiness_review_agent import __version__
 from data_migration_readiness_review_agent.artifacts import (
     CONTRACT_REVIEW_FILE_NAME,
     DATASET_PROFILES_FILE_NAME,
+    EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
     INVENTORY_FILE_NAME,
     MAPPING_REVIEW_FILE_NAME,
     RECONCILIATION_RESULTS_FILE_NAME,
     SCHEMA_INVENTORY_FILE_NAME,
+    SENSITIVE_FIELD_REVIEW_FILE_NAME,
+    TEST_EVIDENCE_REVIEW_FILE_NAME,
     TRACE_FILE_NAME,
 )
 from data_migration_readiness_review_agent.cli import main
@@ -41,6 +44,9 @@ def test_valid_pack_writes_expected_artifacts(tmp_path: Path) -> None:
         MAPPING_REVIEW_FILE_NAME,
         CONTRACT_REVIEW_FILE_NAME,
         RECONCILIATION_RESULTS_FILE_NAME,
+        SENSITIVE_FIELD_REVIEW_FILE_NAME,
+        TEST_EVIDENCE_REVIEW_FILE_NAME,
+        EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
         TRACE_FILE_NAME,
     ]:
         assert (output_dir / file_name).exists()
@@ -62,13 +68,19 @@ def test_trace_includes_artifacts_summaries_and_safe_status(tmp_path: Path) -> N
         MAPPING_REVIEW_FILE_NAME,
         CONTRACT_REVIEW_FILE_NAME,
         RECONCILIATION_RESULTS_FILE_NAME,
+        SENSITIVE_FIELD_REVIEW_FILE_NAME,
+        TEST_EVIDENCE_REVIEW_FILE_NAME,
+        EVIDENCE_COVERAGE_REVIEW_FILE_NAME,
         TRACE_FILE_NAME,
     ]
     assert trace["counts"]["referenced_files_present"] == 6
     assert trace["reconciliation_summary"]["datasets_reconciled"] == 1
+    assert trace["sensitive_field_summary"]["datasets_reviewed"] == 1
+    assert trace["test_evidence_summary"]["test_results_expected"] == 1
+    assert trace["evidence_coverage_summary"]["expected_evidence_types"] == 5
     assert trace["mapping_review_summary"]["mappings_reviewed"] == 1
     assert trace["contract_review_summary"]["contracts_reviewed"] == 1
     assert trace["no_llm"] is True
     assert trace["orchestrator"] == "standard"
-    assert trace["status"] == "reconciliation_artifacts_created"
+    assert trace["status"] == "evidence_review_artifacts_created"
     assert not any(f'"status": "{term}"' in trace_text for term in FORBIDDEN_REVIEW_TERMS)

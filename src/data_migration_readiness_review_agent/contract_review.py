@@ -259,9 +259,7 @@ def build_contract_field_review(
             warnings.append(message)
 
     status = (
-        "passed_check"
-        if all(check["status"] == "passed_check" for check in checks)
-        else "warning"
+        "passed_check" if all(check["status"] == "passed_check" for check in checks) else "warning"
     )
     if any(check["status"] == "failed_check" for check in checks):
         status = "failed_check"
