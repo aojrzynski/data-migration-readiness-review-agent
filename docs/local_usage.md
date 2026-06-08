@@ -57,7 +57,7 @@ data-migration-readiness-review --pack examples/migration_pack --output-dir outp
 
 ## Orchestrator option
 
-`--orchestrator standard` is currently the only supported orchestrator. It is the default, so the option can be omitted for normal local runs.
+`--orchestrator standard` is the default, so the option can be omitted for normal local runs. The optional `--orchestrator langgraph` path runs the same deterministic workflow when the `graph` extra is installed.
 
 ## Open the reviewer summary first
 
@@ -94,6 +94,22 @@ Manifest and referenced paths must stay inside the pack directory. Absolute path
 ### Hatchling or build dependency install issue in restricted environments
 
 Editable installs use the build backend declared in `pyproject.toml`. In restricted environments, installing build dependencies such as `hatchling` may fail. If that happens, use an environment with package access, preinstall required build dependencies from an internal mirror, or run tests with `PYTHONPATH=src` as a local fallback.
+
+### Optional LangGraph orchestrator
+
+The standard orchestrator remains the default. To try the optional LangGraph-backed orchestration path, install the graph extra:
+
+```bash
+python -m pip install -e ".[dev,graph]"
+```
+
+Then run the same local workflow with the alternate orchestrator:
+
+```bash
+python -m data_migration_readiness_review_agent.cli --pack examples/migration_pack --output-dir outputs/langgraph-example --no-llm --orchestrator langgraph
+```
+
+If the graph extra is not installed, requesting `--orchestrator langgraph` exits with a clear CLI error instead of falling back to the standard orchestrator.
 
 ## Optional LLM reviewer notes
 

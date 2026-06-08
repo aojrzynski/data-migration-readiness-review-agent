@@ -10,7 +10,7 @@ This project helps by producing a consistent evidence pack from local files. It 
 
 ## Current deterministic workflow
 
-The CLI calls the current `standard` orchestrator, which performs these local steps in a deterministic order:
+The CLI calls the `standard` orchestrator by default, which performs these local steps in a deterministic order. An optional LangGraph orchestrator can run the same workflow when the `graph` extra is installed:
 
 1. Load `manifest.yaml`, `manifest.yml`, or an explicit `--manifest` path.
 2. Reject manifest and referenced paths that escape the migration pack directory.
@@ -46,4 +46,4 @@ The workflow prepares evidence and deterministic findings. It does not approve m
 
 ## Optional LLM and orchestration
 
-Optional LLM reviewer notes can be requested explicitly. They remain bounded, traceable, and non-authoritative. The current supported orchestration mode is `standard`; it runs the ordered artifact workflow locally and records orchestration metadata in the trace. Deterministic local artifacts remain the evidence base, and human reviewers remain responsible for decisions. LangGraph orchestration is not part of this workflow.
+Optional LLM reviewer notes can be requested explicitly. They remain bounded, traceable, and non-authoritative. The default orchestration mode is `standard`; optional `langgraph` mode runs the same ordered artifact workflow when installed and records orchestration metadata in the trace. Deterministic local artifacts remain the evidence base, and human reviewers remain responsible for decisions.

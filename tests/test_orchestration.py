@@ -237,3 +237,108 @@ def test_trace_file_matches_in_memory_trace(tmp_path: Path) -> None:
     result = run_standard_review(config)
 
     assert read_json(output_dir / "migration_readiness_trace.json") == result.trace
+
+
+def test_run_config_defaults_to_standard_orchestrator(tmp_path: Path) -> None:
+    pack_path = make_pack(tmp_path)
+    args = build_parser().parse_args(["--pack", str(pack_path)])
+
+    config = build_run_config(args, argparse.ArgumentParser())
+
+    assert config.orchestrator == "standard"
+
+
+def test_langgraph_orchestrator_without_optional_dependency_exits_nonzero(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    def dependency_missing(config: RunConfig) -> RunResult:
+        from data_migration_readiness_review_agent.orchestrators.langgraph import (
+            LANGGRAPH_DEPENDENCY_ERROR,
+            LangGraphDependencyError,
+        )
+
+        raise LangGraphDependencyError(LANGGRAPH_DEPENDENCY_ERROR)
+
+    monkeypatch.setattr(
+        "data_migration_readiness_review_agent.cli.run_langgraph_review", dependency_missing
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            [
+                "--pack",
+                str(pack_path),
+                "--output-dir",
+                str(output_dir),
+                "--no-llm",
+                "--orchestrator",
+                "langgraph",
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert "optional graph dependency" in capsys.readouterr().err
+    assert not output_dir.exists()
+
+
+def test_llm_conflict_validation_happens_before_langgraph_orchestrator(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    def fail_if_called(config: RunConfig) -> RunResult:
+        raise AssertionError("orchestrator should not run")
+
+    monkeypatch.setattr(
+        "data_migration_readiness_review_agent.cli.run_langgraph_review", fail_if_called
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            [
+                "--pack",
+                str(pack_path),
+                "--output-dir",
+                str(output_dir),
+                "--no-llm",
+                "--llm-review",
+                "--orchestrator",
+                "langgraph",
+            ]
+        )
+
+    assert exc_info.value.code == 2
+
+
+def test_llm_max_input_validation_happens_before_langgraph_orchestrator(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pack_path = make_pack(tmp_path)
+    output_dir = tmp_path / "outputs"
+
+    def fail_if_called(config: RunConfig) -> RunResult:
+        raise AssertionError("orchestrator should not run")
+
+    monkeypatch.setattr(
+        "data_migration_readiness_review_agent.cli.run_langgraph_review", fail_if_called
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            [
+                "--pack",
+                str(pack_path),
+                "--output-dir",
+                str(output_dir),
+                "--llm-max-input-chars",
+                "0",
+                "--orchestrator",
+                "langgraph",
+            ]
+        )
+
+    assert exc_info.value.code == 2

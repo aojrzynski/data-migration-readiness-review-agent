@@ -1,6 +1,6 @@
 # Artifacts
 
-The CLI calls the `standard` orchestrator to write focused JSON artifacts plus a human-readable reviewer summary in a deterministic order. Each artifact is deterministic for the same input pack, except trace paths may reflect the local filesystem.
+The CLI calls the `standard` orchestrator by default to write focused JSON artifacts plus a human-readable reviewer summary in a deterministic order. The optional `langgraph` orchestrator writes artifacts with the same semantics when the graph extra is installed. Each artifact is deterministic for the same input pack, except trace paths and orchestration metadata may reflect the local run.
 
 ## `migration_inventory.json`
 
@@ -94,6 +94,6 @@ The CLI calls the `standard` orchestrator to write focused JSON artifacts plus a
 ## `migration_readiness_trace.json`
 
 - **Purpose:** Records run settings and artifact summaries.
-- **Main sections:** tool and version details, pack path, manifest path, output directory, `no_llm`, orchestrator mode, orchestration metadata, artifacts written, artifact summary counts, `llm_review_summary`, notes.
+- **Main sections:** tool and version details, pack path, manifest path, output directory, `no_llm`, orchestrator mode (`standard` or optional `langgraph`), orchestration metadata, artifacts written, artifact summary counts, `llm_review_summary`, notes.
 - **Important statuses:** `review_summary_artifacts_created`.
 - **What it does not mean:** It does not prove that artifacts were reviewed by a human or that downstream decisions were made.

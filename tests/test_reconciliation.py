@@ -268,5 +268,7 @@ def test_no_blocked_runtime_dependencies_are_added() -> None:
 
     dependencies_block = pyproject_text.split("[project.optional-dependencies]", 1)[0]
     assert "openai" not in dependencies_block
-    for dependency_name in ("langgraph", "pandas", "openpyxl"):
+    assert "graph = [" in pyproject_text
+    assert "langgraph" in pyproject_text
+    for dependency_name in ("pandas", "openpyxl"):
         assert dependency_name not in pyproject_text

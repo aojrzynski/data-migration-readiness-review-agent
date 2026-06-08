@@ -48,8 +48,9 @@ def test_orchestrator_help_text_is_pr_agnostic(capsys: pytest.CaptureFixture[str
     assert "PR #6" not in help_text
     assert "PR #9 supports openai only" not in help_text
     assert "optional LLM reviewer currently supports openai only." in help_text
-    assert "The deterministic local" in help_text
-    assert "workflow currently supports 'standard'." in help_text
+    assert "standard" in help_text
+    assert "langgraph" in help_text
+    assert "graph extra" in help_text
 
 
 def test_valid_pack_writes_expected_artifacts(tmp_path: Path) -> None:
@@ -118,7 +119,9 @@ def test_forbidden_runtime_dependencies_are_not_added() -> None:
     assert "openai" not in dependencies_block
     assert "llm = [" in pyproject
     assert "openai>=1.0.0" in pyproject
-    for package_name in ("pandas", "openpyxl", "langgraph"):
+    assert "graph = [" in pyproject
+    assert "langgraph" in pyproject
+    for package_name in ("pandas", "openpyxl"):
         assert package_name not in pyproject
 
 
