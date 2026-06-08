@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "data-migration-readiness-review-agent"
+version = "0.1.0"
+description = "Local-first CLI scaffold for preparing migration readiness review evidence packs."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+  { name = "Adam Ojrzynski" }
+]
+dependencies = []
+
+[project.scripts]
+data-migration-readiness-review = "data_migration_readiness_review_agent.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
