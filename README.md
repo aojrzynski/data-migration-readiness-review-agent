@@ -2,6 +2,15 @@
 
 Given a migration pack, what evidence do we have, what gaps or mismatches are visible, and what should a human reviewer check next?
 
+> [!NOTE]
+> **Part of the Data Agent Suite.**
+> 
+> This repo is one of 10 local-first data/AI agents built around practical data workflows, deterministic evidence, bounded LLM use, and review-ready artifacts.
+> 
+> The full ordered list of agents is included near the bottom of this README.
+> 
+> See the full suite overview: [Data Agent Suite](https://aojrzynski.github.io/agents/)
+
 ## What this tool is
 
 Data Migration Readiness Review Agent is a local command-line tool. It reads a local migration pack and writes deterministic review artifacts. It helps a human reviewer inspect migration evidence before that reviewer records decisions in the normal workplace process.
@@ -184,3 +193,22 @@ python -m ruff check .
 - [LLM reviewer notes](docs/llm_reviewer_notes.md)
 - [Orchestration](docs/orchestration.md)
 - [Roadmap](docs/roadmap.md)
+
+---
+
+> [!NOTE]
+> **Data Agent Suite**  
+> This repo is part of the **Data Agent Suite**: 10 local-first data/AI agents focused on practical data workflows, deterministic evidence, bounded LLM use, and review-ready artifacts.
+> 
+> See the full suite overview: [Data Agent Suite](https://aojrzynski.github.io/agents/)
+>
+> 1. [Data Quality Triage Agent](https://github.com/aojrzynski/data-quality-triage-agent)
+> 2. [Data Reconciliation Agent](https://github.com/aojrzynski/data-reconciliation-agent)
+> 3. [Data Dictionary Agent](https://github.com/aojrzynski/data-dictionary-agent)
+> 4. [Data Contract Review Agent](https://github.com/aojrzynski/data-contract-review-agent)
+> 5. [Sensitive Field Review Agent](https://github.com/aojrzynski/sensitive-field-review-agent)
+> 6. [Data Test Suggestion Agent](https://github.com/aojrzynski/data-test-suggestion-agent)
+> 7. [Dataset Onboarding Reviewer Workflow](https://github.com/aojrzynski/dataset-onboarding-reviewer-workflow)
+> 8. [Data Quality Investigation Workflow](https://github.com/aojrzynski/data-quality-investigation-workflow)
+> 9. [Project Evidence Review Agent](https://github.com/aojrzynski/project-evidence-review-agent)
+> 10. **Data Migration Readiness Review Agent**
